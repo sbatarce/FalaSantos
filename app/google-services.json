@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "206918637249",
+    "firebase_url": "https://falasantos-3093d.firebaseio.com",
+    "project_id": "falasantos-3093d",
+    "storage_bucket": "falasantos-3093d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:206918637249:android:4fbf57c4b4babcb0",
+        "android_client_info": {
+          "package_name": "com.pms.falasantos"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "206918637249-d9vvpmu71f7relndh8g33e5porpil0ki.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmFVMEKPbEDPbe7UQCOHAUN07EMNnxoJQ"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

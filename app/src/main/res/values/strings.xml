@@ -1,0 +1,5 @@
+<resources>
+  <string name="app_name">FalaSantos</string>
+  <string name="action_settings">Configuração</string>
+  <string name="action_token">Copia o token pro clip</string>
+</resources>
