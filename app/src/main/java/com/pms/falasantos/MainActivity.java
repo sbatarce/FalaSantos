@@ -11,11 +11,16 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ExpandableListView;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 
 public class MainActivity extends AppCompatActivity
 	{
+	ExpandableListView elsAlvos;
+	ElsAlvosAdapter expadapter;
+
 	@Override
 	protected void onCreate( Bundle savedInstanceState )
 		{
@@ -26,7 +31,7 @@ public class MainActivity extends AppCompatActivity
 		getSupportActionBar().setDisplayShowCustomEnabled(true);
 		getSupportActionBar().setCustomView(R.layout.actbar);
 		View view =getSupportActionBar().getCustomView();
-		//
+		//  verifica se é uma URL
 		Bundle ext = getIntent().getExtras();
 		if( ext != null )
 			{
@@ -39,14 +44,17 @@ public class MainActivity extends AppCompatActivity
 				intent.setFlags( Intent.FLAG_ACTIVITY_NEW_TASK );
 				startActivity(intent);
 				finishAffinity();
+				return;
 				}
 			}
+		//  prepara a lista de alvos
+		elsAlvos = (ExpandableListView) findViewById( R.id.elsAlvos );
 		}
 	
 	@Override
 	public boolean onCreateOptionsMenu( Menu menu )
 		{
-		//  estufa o menu
+		//  infla o menu
 		getMenuInflater().inflate( R.menu.menu_main, menu );
 		return true;
 		}
@@ -75,5 +83,20 @@ public class MainActivity extends AppCompatActivity
 			}
 		
 		return super.onOptionsItemSelected( item );
+		}
+	//
+	private void setupList()
+		{
+		elsAlvos.setOnGroupExpandListener( new ExpandableListView.OnGroupExpandListener()
+			{
+			@Override
+			public void onGroupExpand( int ixgr )
+				{
+				Log.i( Globais.apptag, "onGroupExpand i=" + ixgr );
+				View view = null;
+				ViewGroup gview = null;
+				int qtch = expadapter.getChildrenCount( ixgr );
+				}
+			} );
 		}
 	}

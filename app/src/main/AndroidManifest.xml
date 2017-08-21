@@ -27,7 +27,7 @@
         android:name="com.google.firebase.messaging.default_notification_color"
         android:resource="@color/colorAccent" />
     <service
-        android:name=".trataMensagem">
+        android:name=".recebeFBMens">
       <intent-filter>
         <action android:name="com.google.firebase.MESSAGING_EVENT"/>
       </intent-filter>

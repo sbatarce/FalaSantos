@@ -1,4 +1,5 @@
 package com.pms.falasantos;
+
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -16,7 +17,7 @@ import java.util.Map;
  * Created by w0513263 on 26/07/17.
  */
 
-public class trataMensagem extends FirebaseMessagingService
+public class recebeFBMens extends FirebaseMessagingService
 	{
 	@Override
 	public void onMessageReceived( RemoteMessage fbmens )
