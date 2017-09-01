@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Environment;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -57,6 +59,60 @@ public class Globais
 		pathSD = Environment.getExternalStorageDirectory().getAbsolutePath();
 		}
 	
+	static public boolean isConnected()
+		{
+		ConnectivityManager cm = ( ConnectivityManager ) ctx.getSystemService( Context.CONNECTIVITY_SERVICE );
+		NetworkInfo netInfo = cm.getActiveNetworkInfo();
+		
+		if( netInfo != null )
+			{
+			if( netInfo.isConnectedOrConnecting() || netInfo.isConnected() )
+				{
+				if( config.flWIFI )
+					{
+					NetworkInfo mWifi = cm.getNetworkInfo( ConnectivityManager.TYPE_WIFI );
+					if( mWifi.isConnected() )
+						return true;
+					else
+						return false;
+					}
+				else
+					return true;
+				}
+			}
+		return false;
+		}
+	
+	//  verifica se já foi feito setup
+	static public boolean fezSetup()
+		{
+		String nuserie = "";
+		try
+			{
+			String sql = "SELECT dis_nuserie FROM dispositivo";
+			Cursor c = db.rawQuery( sql, null );
+			if( c.moveToFirst() )
+				{
+				nuserie = c.getString( c.getColumnIndex( "dis_nuserie" ) );
+				c.close();
+				}
+			else
+				{
+				c.close();
+				return false;
+				}
+			}
+		catch( Exception exp )
+			{
+			Log.i( apptag, "Erro ALTER TABLE: " + exp.getMessage() );
+			return false;
+			}
+		if( nuserie.equals( "" ) )
+			return false;
+		else
+			return true;
+		}
+
 	//  subrotinas dedicadas ao banco de dados
 	//  cria ou abre o DB
 	public static boolean AbreDB()

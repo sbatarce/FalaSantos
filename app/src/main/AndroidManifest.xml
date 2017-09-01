@@ -19,25 +19,29 @@
     <!-- Define o ícone default para as notificações de mensagens. -->
     <meta-data
         android:name="com.google.firebase.messaging.default_notification_icon"
-        android:resource="@drawable/ic_launcher" />
-    <!-- Define a cor
+        android:resource="@drawable/ic_launcher"/>
+    <!--
+    Define a cor
     Set color used with incoming notification messages. This is used when no color is set for the incoming
-         notification message. See README(https://goo.gl/6BKBk7) for more. -->
+         notification message. See README(https://goo.gl/6BKBk7) for more.
+        -->
     <meta-data
         android:name="com.google.firebase.messaging.default_notification_color"
-        android:resource="@color/colorAccent" />
-    <service
-        android:name=".recebeFBMens">
+        android:resource="@color/colorAccent"/>
+
+    <service android:name=".recebeFBMens">
       <intent-filter>
         <action android:name="com.google.firebase.MESSAGING_EVENT"/>
       </intent-filter>
     </service>
-    <service
-        android:name=".firebaseToken">
+    <service android:name=".firebaseToken">
       <intent-filter>
         <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
       </intent-filter>
     </service>
+
+    <activity android:name=".SetupActivity">
+    </activity>
   </application>
 
 </manifest>

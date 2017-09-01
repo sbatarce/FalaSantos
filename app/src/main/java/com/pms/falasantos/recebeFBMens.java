@@ -28,11 +28,8 @@ public class recebeFBMens extends FirebaseMessagingService
 		String title = notif.getTitle();
 		String body = notif.getBody();
 		Map data = fbmens.getData();
-		String xpto = "";
-		if( data.containsKey( "xpto" ) )
-			xpto = data.get("xpto").toString();
+
 		String url = "";
-		
 		if( data.containsKey( "url" ) )
 			{
 			url = data.get( "url" ).toString();
