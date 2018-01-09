@@ -9,16 +9,20 @@
   <TextView
       android:id="@+id/txAlvo"
       android:layout_width="0dp"
-      android:layout_height="30dp"
+      android:layout_height="wrap_content"
       android:layout_marginLeft="30dp"
-      android:layout_weight="90"
-      android:text="nome do alvo"
-      android:textSize="24sp"/>
+      android:layout_weight="85"
+      android:text="aaaaaa"
+      android:textSize="18sp"
+      android:textStyle="bold"/>
 
-  <ImageView
+  <TextView
+      android:id="@+id/txTotALer"
       android:layout_width="0dp"
       android:layout_height="30dp"
-      android:layout_weight="10"
-      android:src="@drawable/vezinho"/>
+      android:layout_weight="15"
+      android:text="88/88"
+      android:textAlignment="viewEnd"
+      android:textSize="14sp"/>
 
 </LinearLayout>

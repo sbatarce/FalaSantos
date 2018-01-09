@@ -5,9 +5,11 @@
     <item>dispositivo|
       dis_id        INTEGER NOT NULL PRIMARY KEY UNIQUE,
       dis_nuserie   TEXT,
+      dis_fbtoken   TEXT,
       dis_vrsdb     INTEGER,
-      dis_hoinic    TEXT    ,
-      dis_hoterm    TEXT    ,
+      dis_vrsapp    INTEGER,
+      dis_hoinic    TEXT,
+      dis_hoterm    TEXT,
       dis_flwifi    INTEGER DEFAULT 0,
       dis_flsilen   TEXT    DEFAULT 0
     </item>
@@ -16,7 +18,7 @@
       des_id        INTEGER PRIMARY KEY AUTOINCREMENT,
       des_sshd      TEXT,
       des_cpf       TEXT,
-      des_dtnasc    TEXT,
+      des_dtnas     TEXT,
       des_nome      TEXT
     </item>
 
@@ -28,7 +30,6 @@
     <item>alvos|
       alv_id        INTEGER PRIMARY KEY AUTOINCREMENT,
       are_id        INTEGER NOT NULL,
-      alv_alvid     INTEGER NOT NULL,
       alv_nome      TEXT,
       FOREIGN KEY(are_id) REFERENCES areas(are_id)
     </item>
@@ -37,6 +38,7 @@
       rem_id        INTEGER PRIMARY KEY AUTOINCREMENT,
       alv_id        INTEGER NOT NULL,
       rem_idpessoa  INTEGER,
+      rem_nopessoa  TEXT,
       rem_flsilen   INTEGER,
       FOREIGN KEY(alv_id) REFERENCES alvos(alv_id)
     </item>
@@ -46,7 +48,8 @@
       rem_id        INTEGER NOT NULL,
       msg_msaid     INTEGER,
       msg_timsg     INTEGER,
-      msg_dtreceb   TEXT,
+      msg_titulo    TEXT,
+      msg_dtenvio   TEXT,
       msg_dtleitu   TEXT,
       msg_dtresp    TEXT,
       msg_dtretorno TEXT,

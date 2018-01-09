@@ -1,4 +1,4 @@
-package com.pms.falasantos;
+package com.pms.falasantos.Comunicacoes;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -11,6 +11,9 @@ import android.util.Log;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+import com.pms.falasantos.Atividades.MainActivity;
+import com.pms.falasantos.Globais;
+import com.pms.falasantos.R;
 
 import java.util.Map;
 /**
@@ -30,13 +33,22 @@ public class recebeFBMens extends FirebaseMessagingService
 		Map data = fbmens.getData();
 
 		String url = "";
-		if( data.containsKey( "url" ) )
+		if( !data.containsKey( "tipo" ) )
+			return;
+		String aux = data.get( "tipo").toString();
+		int tipo = Integer.parseInt( aux );
+		switch( tipo )
 			{
-			url = data.get( "url" ).toString();
-			Uri uri = Uri.parse( url );
-			Intent intent = new Intent(Intent.ACTION_VIEW, uri );
-			intent.setFlags( Intent.FLAG_ACTIVITY_NEW_TASK );
-			startActivity(intent);
+			case 1:
+				
+				break;
+			case 2:
+				url = data.get( "url" ).toString();
+				Uri uri = Uri.parse( url );
+				Intent intent = new Intent(Intent.ACTION_VIEW, uri );
+				intent.setFlags( Intent.FLAG_ACTIVITY_NEW_TASK );
+				startActivity(intent);
+				break;
 			}
 		
 		//
@@ -63,6 +75,8 @@ public class recebeFBMens extends FirebaseMessagingService
 			Log.i( Globais.apptag, "Message Notification Body: " + fbmens.getNotification().getBody() );
 			Log.i( Globais.apptag, "Message Notification Title: " + fbmens.getNotification().getTitle() );
 			}
+		
+		sendNotification( "Texto do sendNotification" );
 		}
 // [END receive_message]
 	

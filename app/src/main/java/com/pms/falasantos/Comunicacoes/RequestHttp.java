@@ -1,4 +1,4 @@
-package com.pms.falasantos;
+package com.pms.falasantos.Comunicacoes;
 /**
  * Created by w0513263 on 21/08/17.
  */
@@ -9,6 +9,8 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.util.Base64;
 import android.util.Log;
+
+import com.pms.falasantos.RespostaConfig;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;

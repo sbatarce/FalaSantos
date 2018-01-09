@@ -1,29 +1,235 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.pms.falasantos.SetupActivity">
+    tools:context="com.pms.falasantos.Atividades.SetupActivity">
+
+  <TextView
+      android:id="@+id/tvEscUser"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="Escolha uma das opções:"
+      android:textSize="24sp"
+      android:textStyle="bold"/>
+
   <RadioGroup
+      android:id="@+id/rgEscUser"
+      android:layout_below="@id/tvEscUser"
       android:orientation="vertical"
       android:layout_width="match_parent"
       android:layout_height="wrap_content">
 
-    <RadioGroup
+    <RadioButton
         android:id="@+id/rbFunc"
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Funcionário ou terceiro da Prefeitura"/>
 
-    <RadioGroup
+    <RadioButton
         android:id="@+id/rbMunic"
-        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:text="Munícipe"/>
 
   </RadioGroup>
 
-</LinearLayout>
+  <LinearLayout
+      android:id="@+id/llComum"
+      android:orientation="vertical"
+      android:layout_below="@id/rgEscUser"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+      <TextView
+          android:layout_width="100dp"
+          android:layout_height="wrap_content"
+          android:text="Horário Inicial"/>
+
+      <EditText
+          android:id="@+id/txHrInic"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:inputType="time"
+          android:text="08:00"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+      <TextView
+          android:layout_width="100dp"
+          android:layout_height="wrap_content"
+          android:text="Horário final"/>
+
+      <EditText
+          android:id="@+id/txHrFinal"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:inputType="time"
+          android:text="21:00"/>
+
+    </LinearLayout>
+
+    <CheckBox
+        android:id="@+id/ckWIFI"
+        android:text="Não usar a Banda do Celular (Só WIFI)"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <CheckBox
+        android:id="@+id/ckSilen"
+        android:text="Sem sons de notificação"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+  </LinearLayout>
+
+  <LinearLayout
+      android:id="@+id/llOptFunc"
+      android:orientation="vertical"
+      android:layout_below="@id/llComum"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+      <TextView
+          android:layout_width="100dp"
+          android:layout_height="wrap_content"
+          android:text="SSHD"/>
+
+      <EditText
+          android:id="@+id/txSSHD"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:inputType="textVisiblePassword"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+      <TextView
+          android:layout_width="100dp"
+          android:layout_height="wrap_content"
+          android:text="Senha"/>
+
+      <EditText
+          android:id="@+id/txSenha"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:inputType="textPassword"/>
+
+    </LinearLayout>
+
+  </LinearLayout>
+
+  <LinearLayout
+      android:id="@+id/llOptMuni"
+      android:orientation="vertical"
+      android:layout_below="@id/llComum"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:weightSum="1">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+      <TextView
+          android:layout_width="100dp"
+          android:layout_height="wrap_content"
+          android:text="Nome"/>
+
+      <EditText
+          android:id="@+id/txNome"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:inputType="textCapWords|textPersonName"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+      <TextView
+          android:layout_width="100dp"
+          android:layout_height="wrap_content"
+          android:text="Nascimento"/>
+
+      <EditText
+          android:id="@+id/txDtNasc"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:inputType="date"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+      <TextView
+          android:layout_width="100dp"
+          android:layout_height="wrap_content"
+          android:text="CPF"/>
+
+      <EditText
+          android:id="@+id/txCPF"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:inputType="number"/>
+
+    </LinearLayout>
+
+  </LinearLayout>
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_alignParentStart="true"
+      android:layout_weight="9.90"
+      android:gravity="center_horizontal"
+      android:orientation="horizontal"
+      android:layout_alignParentBottom="true">
+
+    <Button
+        android:id="@+id/btSetupOK"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:onClick="onClick"
+        android:text="OK"/>
+
+    <Button
+        android:id="@+id/btSetupCancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:onClick="onClick"
+        android:text="Cancel"/>
+
+  </LinearLayout>
+
+</RelativeLayout>

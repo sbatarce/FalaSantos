@@ -1,4 +1,4 @@
-package com.pms.falasantos;
+package com.pms.falasantos.Adaptadores;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -6,45 +6,47 @@ import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.TextView;
 
+import com.pms.falasantos.Outras.clAlvo;
+import com.pms.falasantos.R;
+
 import java.util.HashMap;
 import java.util.List;
 /**
- * Created by w0513263 on 17/08/17.
+ * Created by w0513263 on 14/09/17.
  */
 
-public class ElsAlvosAdapter extends BaseExpandableListAdapter
+public class ElsAreasAdapter extends BaseExpandableListAdapter
 	{
-	private Context ctx;
-	private List<String> lsAlvos;
-	private List<String> lsRemet;
-	private HashMap<String, List<String>> lista;
+	private Context                       ctx;
+	private List<String>                  lsAreas;
+	private HashMap<String, List<clAlvo>> lista;
 	
-	public ElsAlvosAdapter( Context ctx, List<String> lsAlvos, HashMap<String, List<String>> lista )
+	public ElsAreasAdapter( Context ctx, List<String> lsAreas, HashMap<String, List<clAlvo>> lista )
 		{
 		this.ctx = ctx;
-		this.lsAlvos = lsAlvos;
+		this.lsAreas = lsAreas;
 		this.lista = lista;
 		}
 	
 	@Override
 	public int getGroupCount()
 		{
-		return lsAlvos.size();
+		return lsAreas.size();
 		}
 	@Override
 	public int getChildrenCount( int grpos )
 		{
-		return lista.get( lsAlvos.get( grpos ) ).size();
+		return lista.get( lsAreas.get( grpos ) ).size();
 		}
 	@Override
 	public Object getGroup( int grpos )
 		{
-		return lsAlvos.get( grpos );
+		return lsAreas.get( grpos );
 		}
 	@Override
 	public Object getChild( int grpos, int rmpos )
 		{
-		return lista.get( lsAlvos.get( grpos ) ).get( rmpos );
+		return lista.get( lsAreas.get( grpos ) ).get( rmpos );
 		}
 	@Override
 	public long getGroupId( int grpos )
@@ -64,24 +66,31 @@ public class ElsAlvosAdapter extends BaseExpandableListAdapter
 	@Override
 	public View getGroupView( int grpos, boolean b, View view, ViewGroup viewGroup )
 		{
-		String titulo = (String) getGroup( grpos );
+		String clalv = (String) getGroup( grpos );
 		if( view == null )
 			{
 			LayoutInflater infalInflater = (LayoutInflater) ctx.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
-			view = infalInflater.inflate( R.layout.grupo_alvos, null );
+			view = infalInflater.inflate( R.layout.area_alvo_item, null );
 			}
-		
-		((TextView)view.findViewById( R.id.txAlvo )).setText( titulo );
+		((TextView)view.findViewById( R.id.txAreaAlvo )).setText( lsAreas.get(grpos) );
 		return view;
 		}
 	@Override
 	public View getChildView( int grpos, int rmpos, boolean b, View view, ViewGroup viewGroup )
 		{
-		return null;
+		final clAlvo clAlvo = (clAlvo) getChild( grpos, rmpos );
+		
+		if( view == null )
+			{
+			LayoutInflater inflater = (LayoutInflater) ctx.getSystemService( ctx.LAYOUT_INFLATER_SERVICE );
+			view = inflater.inflate( R.layout.area_alvo_item, null );
+			}
+		((TextView)view.findViewById( R.id.txAreaAlvo )).setText( clAlvo.alvo );
+		return view;
 		}
 	@Override
 	public boolean isChildSelectable( int grpos, int rmpos )
 		{
-		return false;
+		return true;
 		}
 	}

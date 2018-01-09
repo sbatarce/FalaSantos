@@ -2,6 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="com.pms.falasantos">
 
+  <uses-permission android:name="android.permission.INTERNET"/>
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+  <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+  <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
   <application
       android:allowBackup="true"
       android:icon="@mipmap/ic_launcher"
@@ -9,7 +15,7 @@
       android:roundIcon="@mipmap/ic_launcher_round"
       android:supportsRtl="true"
       android:theme="@style/CustomTheme">
-    <activity android:name=".MainActivity">
+    <activity android:name=".Atividades.MainActivity">
       <intent-filter>
         <action android:name="android.intent.action.MAIN"/>
 
@@ -29,18 +35,24 @@
         android:name="com.google.firebase.messaging.default_notification_color"
         android:resource="@color/colorAccent"/>
 
-    <service android:name=".recebeFBMens">
+    <service android:name=".Comunicacoes.recebeFBMens">
       <intent-filter>
         <action android:name="com.google.firebase.MESSAGING_EVENT"/>
       </intent-filter>
     </service>
-    <service android:name=".firebaseToken">
+    <service android:name=".Comunicacoes.firebaseToken">
       <intent-filter>
         <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
       </intent-filter>
     </service>
 
-    <activity android:name=".SetupActivity">
+    <activity android:name=".Atividades.SetupActivity">
+    </activity>
+    <activity android:name=".Atividades.MensagemActivity">
+    </activity>
+    <activity android:name=".Atividades.AlvosActivity">
+    </activity>
+    <activity android:name=".Atividades.AddAlvoActivity">
     </activity>
   </application>
 

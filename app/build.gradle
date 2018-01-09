@@ -2,7 +2,6 @@ apply plugin: 'com.android.application'
 
 android {
   compileSdkVersion 25
-  buildToolsVersion "25.0.2"
   defaultConfig {
     applicationId "com.pms.falasantos"
     minSdkVersion 17
@@ -17,6 +16,7 @@ android {
       proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
     }
   }
+  buildToolsVersion '26.0.2'
 }
 
 dependencies {
@@ -29,6 +29,11 @@ dependencies {
   compile 'com.google.firebase:firebase-messaging:10.0.1'
   testCompile 'junit:junit:4.12'
 }
+
+
+
+
+
 
 
 apply plugin: 'com.google.gms.google-services'

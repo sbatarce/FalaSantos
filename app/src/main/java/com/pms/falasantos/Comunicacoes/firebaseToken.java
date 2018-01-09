@@ -1,9 +1,9 @@
-package com.pms.falasantos;
-import android.content.SharedPreferences;
+package com.pms.falasantos.Comunicacoes;
 import android.util.Log;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.FirebaseInstanceIdService;
+import com.pms.falasantos.Globais;
 /**
  * Created by w0513263 on 26/07/17.
  */

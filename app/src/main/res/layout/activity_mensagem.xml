@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:weightSum="100"
+    tools:context="com.pms.falasantos.Atividades.MensagemActivity">
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="0dp"
+      android:weightSum="10"
+      android:layout_weight="10"
+      android:background="@drawable/bordaarred"
+      android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/txMsgPerfil"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="2dp"
+        android:layout_weight="5"/>
+
+    <TextView
+        android:id="@+id/txMsgOrig"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="0dp"
+        android:layout_weight="5"/>
+
+  </LinearLayout>
+
+  <ExpandableListView
+      android:id="@+id/exlvMensag"
+      android:layout_width="match_parent"
+      android:layout_height="0dp"
+      android:layout_weight="88"
+      android:groupIndicator="@drawable/ind_seletor"
+      android:indicatorLeft="0dp"
+      android:indicatorEnd="25dp"/>
+
+</LinearLayout>
