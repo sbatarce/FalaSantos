@@ -1,8 +1,15 @@
 package com.pms.falasantos.Atividades;
 
+/**
+ *    Monta a tela de entrada dos dados do alvo escolhido pelo usuário
+ *    mostra a tela e espera botão OK ou cancel
+ *    chama o validador do sistema de origem
+ *    segue com o cadastramento do alvo no servidor
+ *
+ */
+
 import android.app.ProgressDialog;
 import android.content.ContentValues;
-import android.content.Intent;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -11,7 +18,6 @@ import android.text.InputType;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -60,6 +66,7 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 	@Override
 	protected void onCreate( Bundle savedInstanceState )
 		{
+		boolean ok = true;
 		super.onCreate( savedInstanceState );
 		setContentView( R.layout.activity_add_alvo );
 		//
@@ -95,7 +102,7 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 				id = View.generateViewId();
 				cmp.setId( id );
 				//  adiciona o título
-				if( cmp.tipo != 30 && cmp.tipo != 31 && cmp.tipo != 32 )
+				if( cmp.tipo != 30 && cmp.tipo != 31 && cmp.tipo != 32 && cmp.tipo != 40 )
 					{
 					llp = new LinearLayout.LayoutParams(
 						LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 30f );
@@ -259,14 +266,43 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 						ll.addView( ckbx );
 						break;
 					case 40:
-						if( Globais.config.sshd.length() != 8 )
+						if( Globais.config.sshd.length() == 8 )
 							{
-							String msg = "Este alvo esta disponível apenas para funcionários.\n" +
-								"Se for este o seu caso, vá em configuração, selecione\n" +
-								"'Funcionário ou terceiro da Prefeitura',\n" +
-								"preencha seu SSHD e sua SENHA.";
-							Globais.Alerta( this, "Acesso negado", msg );
-							finish();
+							llp = new LinearLayout.LayoutParams(
+								LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 30f );
+							titCmp = new TextView( this );
+							titCmp.setText( cmp.nome );
+							titCmp.setWidth( 0 );
+							titCmp.setLayoutParams( llp );
+							ll.addView( titCmp );
+							//  adiciona o editor de texto
+							edtx = new EditText( this );
+							edtx.setId( id );
+							llp = new LinearLayout.LayoutParams( LinearLayout.LayoutParams.WRAP_CONTENT,
+							                                     LinearLayout.LayoutParams.WRAP_CONTENT, 70f );
+							edtx.setLayoutParams( llp );
+							edtx.setWidth( 8 );
+							edtx.setText( Globais.config.sshd );
+							edtx.setEnabled( false );
+							edtx.setInputType( InputType.TYPE_CLASS_TEXT );
+							if( cmp.tamax > 0 )
+								edtx.setFilters( new InputFilter[]{ new InputFilter.LengthFilter( cmp.tamax ) } );
+							ll.addView( edtx );
+							}
+						else
+							{
+							String msg = "Este alvo esta disponível apenas para funcionários. " +
+								"Se for este o seu caso, vá em configuração, selecione " +
+								"'Funcionário ou terceiro da Prefeitura', " +
+								"preencha seu SSHD e sua SENHA.\n Volte aqui para adicionar o alvo.";
+							llp = new LinearLayout.LayoutParams(
+								LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0f );
+							titCmp = new TextView( this );
+							titCmp.setText( msg );
+							titCmp.setWidth( 0 );
+							titCmp.setLayoutParams( llp );
+							ll.addView( titCmp );
+							ok = false;
 							}
 						break;
 					}
@@ -278,13 +314,18 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 			                                     LinearLayout.LayoutParams.WRAP_CONTENT );
 			ll.setLayoutParams( llp );
 			llalvo.addView( ll );
+			//  botões
+			Button botao;
 			//  botão de OK
-			Button botao = new Button( this );
-			botao.setText( "OK" );
-			idOK = View.generateViewId();
-			botao.setId( idOK );
-			botao.setOnClickListener( this );
-			ll.addView( botao );
+			if( ok )
+				{
+				botao = new Button( this );
+				botao.setText( "OK" );
+				idOK = View.generateViewId();
+				botao.setId( idOK );
+				botao.setOnClickListener( this );
+				ll.addView( botao );
+				}
 			//  botão cancel
 			botao = new Button( this );
 			botao.setText( "cancel" );
@@ -307,7 +348,7 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 			EditText edtx;
 			String val;
 			clAlvo clalvo = Globais.getClalvo();
-			String body = "{ \"alvo\": \"" + noalvo + "\"";
+			String body = "{ \"alvo\": \"" + clalvo.id + "\"";
 			for( clCampo cmp : clalvo.campos )
 				{
 				id = cmp.id;
@@ -324,6 +365,7 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 					case 21:
 					case 22:
 					case 23:
+					case 40:
 						edtx = (EditText) findViewById( id );
 						if( edtx.getText().toString().length() > 0 )
 							{
@@ -348,9 +390,6 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 							body += "1";
 						else
 							body += "0";
-						break;
-					
-					case 40:
 						break;
 					}
 				}
@@ -396,15 +435,27 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 				}
 			if( !jobj.getString( "status" ).equals( "OK" ) && !jobj.getString( "status" ).equals( "ok" ) )
 				{
-				String status = jobj.getString( "status" );
-				Globais.Alerta( this, "Resposta do servidor com erro", status );
+				String descr = jobj.getString( "descr" );
+				Globais.Alerta( this, "Resposta do servidor com erro", descr );
 				return;
 				}
 			switch( state )
 				{
 				case valida:
+					if( !jobj.has( "id" ))
+						{
+						Globais.Alerta( this, "Erro do validador", "Deve retornar o ID da pessoa" );
+						return;
+						}
+					if( !jobj.has( "nomealvo" ))
+						{
+						Globais.Alerta( this, "Erro do validador", "Deve retornar o nome do alvo" );
+						return;
+						}
+					
 					idalvo = jobj.getString( "id" );
 					Globais.obterConfig();
+					
 					progress = ProgressDialog.show( this, "Por favor, espere...", "Cadastrando o alvo...",
 					                                true );
 					state = State.cadalvo;
@@ -420,7 +471,6 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 					break;
 				
 				case cadalvo:
-					int id = jobj.getInt( "id" );
 					long ixarea = Globais.ixArea( area );
 					if( ixarea < 0 )
 						{

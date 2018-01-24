@@ -53,6 +53,9 @@ public class MainActivity extends AppCompatActivity
 		View view = getSupportActionBar().getCustomView();
 		//  verifica se é uma URL
 		Bundle ext = getIntent().getExtras();
+		/**
+		 *
+		 */
 		if( ext != null )
 			{
 			if( ext.containsKey( "tipo" ) )
@@ -239,13 +242,14 @@ public class MainActivity extends AppCompatActivity
 					}
 				if( !alvo.equals( alvant ) )      //  novo area/alvo
 					{
-					if( lsrems.size() > 0 )
+					if( !alvant.equals( "-" ) )
 						{
 						clAlvs clalv = new clAlvs( alvant, qtAlvALer, qtAlvTot );
 						lista.put( clalv, lsrems );
 						lsalvos.add( clalv );
 						lsrems = new ArrayList<>();
 						}
+
 					alvant = alvo;
 					qtAlvALer = 0;
 					qtAlvTot = 0;
@@ -255,9 +259,11 @@ public class MainActivity extends AppCompatActivity
 				qtRemTot++;
 				}
 			if( !remant.equals( "-" ) )
+				{
 				lsrems.add( new clRems( idrant, remant, qtRemALer, qtRemTot ) );
-			qtAlvALer += qtRemALer;
-			if( lsrems.size() > 0 )
+				qtAlvALer += qtRemALer;
+				}
+			if( !alvant.equals( "-" ) )
 				{
 				clAlvs clalv = new clAlvs( alvant, qtAlvALer, qtAlvTot );
 				lista.put( clalv, lsrems );

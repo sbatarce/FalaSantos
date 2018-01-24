@@ -22,6 +22,10 @@ import java.util.Map;
 
 public class recebeFBMens extends FirebaseMessagingService
 	{
+	/**
+	 * onMessageReceived  recebe mensagens do FB quando o programa estiver ativo e no ar
+	 * @param fbmens
+	 */
 	@Override
 	public void onMessageReceived( RemoteMessage fbmens )
 		{

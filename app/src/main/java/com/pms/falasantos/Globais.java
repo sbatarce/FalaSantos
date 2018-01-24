@@ -41,14 +41,15 @@ public class Globais
 	public static String dominio = "https://egov.santos.sp.gov.br/simensweb/";
 	
 	static private Boolean emuso = false;
+	static private Boolean semaf = false;
 	
 	static public  Context   ctx       = null;
 	static private Resources resources = null;
 	static private String    nodb      = "falasantos.db";
-	static private String    pathDB    = "";
+	static private String    DBfile    = "";        //  nome do db com path
 	static private String    pathSD    = "";
 	static private String    publSD    = "";
-	
+	static private String    pathDB    = "/data/data/com.pms.falasantos/databases";
 	static public SQLiteDatabase db = null;
 	
 	static public boolean dbOK = false;
@@ -72,19 +73,20 @@ public class Globais
 	
 	static public class config
 		{
-		static public int     iddis;                //  id deste dispositivo
-		static public int     iddes;                //  id do destinatário deste dispositivo
-		static public String  nuserie;
-		static public String  destin;
-		static public String  sshd;
-		static public String  nome;
-		static public String  cpf;
-		static public String  dtnas;
-		static public String  hoini;
-		static public String  hofim;
-		static public int     vrsdb;
-		static public boolean flWIFI;
-		static public boolean flSilen;
+		static public int     iddis = -1;                //  id deste dispositivo
+		static public int     iddes = -1;                //  id do destinatário deste dispositivo
+		static public String  nuserie = "";
+		static public String  token = "";
+		static public String  destin = "";
+		static public String  sshd = "";
+		static public String  nome = "";
+		static public String  cpf = "";
+		static public String  dtnas = "";
+		static public String  hoini = "";
+		static public String  hofim = "";
+		static public int     vrsdb = -1;
+		static public boolean flWIFI = false;
+		static public boolean flSilen = false;
 		}
 	
 	//  mensagem com OK & Cancel
@@ -149,7 +151,7 @@ public class Globais
 		{
 		ctx = context;
 		resources = ctx.getResources();
-		pathDB = context.getDatabasePath( nodb ).getAbsolutePath();
+		DBfile = context.getDatabasePath( nodb ).getAbsolutePath();
 		pathSD = Environment.getExternalStorageDirectory().getAbsolutePath();
 		publSD = Environment.getExternalStoragePublicDirectory(
 			Environment.DIRECTORY_DCIM ).getAbsolutePath();
@@ -169,6 +171,53 @@ public class Globais
 			{
 			emuso = false;
 			}
+		}
+	
+	static public boolean bloqueia()
+		{
+		Boolean wsemaf;
+		//  verifica se já está bloqueado
+		synchronized( semaf )
+			{
+			wsemaf = semaf;
+			if( !semaf )
+				semaf = true;
+			}
+		if( wsemaf )
+			return false;       //  esta bloqueado
+		else
+			return true;        //  bloqueou
+		}
+	
+	static public boolean libera()
+		{
+		Boolean wsemaf;
+		//  verifica se já está bloqueado
+		synchronized( semaf )
+			{
+			wsemaf = semaf;
+			if( semaf )
+				semaf = false;
+			}
+		if( !wsemaf )
+			return false;     //  ja esta liberado
+		else
+			return true;      //  liberou
+		}
+	
+	static public boolean espera()
+		{
+		Boolean wsemaf = false;
+		//  verifica se já está bloqueado
+		while( !wsemaf )
+			{
+			synchronized( semaf )
+				{
+				if( !semaf )
+					wsemaf = true;
+				}
+			}
+		return true;
 		}
 	
 	static public boolean isConnected()
@@ -880,12 +929,13 @@ public class Globais
 		String idtel = nuSerial();
 		if( idtel != null )
 			{
-			if( idtel.equals( "355256061638937" ) || idtel.equals( "000000000000000" ) )
+			if( idtel.equals( "355256063048937" ) || idtel.equals( "000000000000000" ) )
 				{
 				menu.add( 0, R.integer.mnidToken, ++order, R.string.mntxToken );
 				menu.add( 0, R.integer.mnidTestes, ++order, R.string.mntxTestes );
 				menu.add( 0, R.integer.mnidRemoveDB, ++order, R.string.mntxRemoveDB );
 				menu.add( 0, R.integer.mnidCopyDB, ++order, R.string.mntxCopyDB );
+				menu.add( 0, R.integer.mnidRecuDB, ++order, R.string.mntxRecuDB );
 				menu.add( 0, R.integer.mnidInitDB, ++order, R.string.mntxInitDB );
 				}
 			}
@@ -931,13 +981,6 @@ public class Globais
 			return;
 			}
 		
-		if( idmenu == R.integer.mnidTestes )
-			{
-			
-			Globais.Alerta( ctx, "Titulo", "Mensagem linha 1\nMensagem Linha 2" );
-			return;
-			}
-		
 		if( idmenu == R.integer.mnidRemoveDB )
 			{
 			Globais.RemoveDB();
@@ -960,6 +1003,19 @@ public class Globais
 		if( idmenu == R.integer.mnidCopyDB )
 			{
 			copyDB( pathSD + "/transfer" );
+			return;
+			}
+		
+		if( idmenu == R.integer.mnidRecuDB )
+			{
+			recuDB( pathSD + "/transfer/" + nodb );
+			return;
+			}
+		
+		if( idmenu == R.integer.mnidTestes )
+			{
+			
+			Globais.Alerta( ctx, "Titulo", "Mensagem linha 1\nMensagem Linha 2" );
 			return;
 			}
 		
@@ -1025,6 +1081,11 @@ public class Globais
 	
 	static public boolean copyDB( String path )
 		{
-		return copyFile( pathDB, nodb, path );
+		return copyFile( DBfile, nodb, path );
+		}
+	
+	static public boolean recuDB( String path )
+		{
+		return copyFile( path, nodb, pathDB );
 		}
 	}

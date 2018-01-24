@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <integer name="dbvers">4</integer>
+  <!--
+   >  Os campos xxx_flatua indicam que o segmento sofreu alteração e portanto
+      deverão ser enviados ao servidor assim que houver condições
+   >
+  -->
   <string-array name="tabelas">
     <item>dispositivo|
       dis_id        INTEGER NOT NULL PRIMARY KEY UNIQUE,
@@ -11,11 +16,12 @@
       dis_hoinic    TEXT,
       dis_hoterm    TEXT,
       dis_flwifi    INTEGER DEFAULT 0,
-      dis_flsilen   TEXT    DEFAULT 0
+      dis_flsilen   INTEGER DEFAULT 0,
+      dis_flatua    INTEGER DEFAULT 0
     </item>
 
     <item>destinatario|
-      des_id        INTEGER PRIMARY KEY AUTOINCREMENT,
+      des_id        INTEGER PRIMARY KEY,
       des_sshd      TEXT,
       des_cpf       TEXT,
       des_dtnas     TEXT,
@@ -23,12 +29,12 @@
     </item>
 
     <item>areas|
-      are_id        INTEGER PRIMARY KEY AUTOINCREMENT,
+      are_id        INTEGER PRIMARY KEY,
       are_nome      TEXT
     </item>
 
     <item>alvos|
-      alv_id        INTEGER PRIMARY KEY AUTOINCREMENT,
+      alv_id        INTEGER PRIMARY KEY,
       are_id        INTEGER NOT NULL,
       alv_nome      TEXT,
       FOREIGN KEY(are_id) REFERENCES areas(are_id)
@@ -39,7 +45,7 @@
       alv_id        INTEGER NOT NULL,
       rem_idpessoa  INTEGER,
       rem_nopessoa  TEXT,
-      rem_flsilen   INTEGER,
+      rem_flsilen   INTEGER DEFAULT 0,
       FOREIGN KEY(alv_id) REFERENCES alvos(alv_id)
     </item>
 
@@ -58,21 +64,25 @@
       FOREIGN KEY(rem_id) REFERENCES remetentes(rem_id)
     </item>
 
-    <item>opcoes|
-      opt_id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    <item>corpo|
+      cor_id        INTEGER PRIMARY KEY,
       msg_id        INTEGER NOT NULL,
-      opt_codigo    INTEGER,
-      opt_texto     TEXT,
-      opt_flchecked INTEGER,
+      cor_ticorpo   INTEGER,
+      cor_corpo     TEXT,
+      cor_texto     TEXT,
+      cor_flatua    INTEGER DEFAULT 0,
       FOREIGN KEY(msg_id) REFERENCES mensagens(msg_id)
     </item>
 
-    <item>corpo|
-      cor_id        INTEGER PRIMARY KEY AUTOINCREMENT,
-      msg_id        INTEGER NOT NULL,
-      cor_ticorpo   INTEGER,
-      cor_texto     TEXT,
-      FOREIGN KEY(msg_id) REFERENCES mensagens(msg_id)
+    <!-- opt_id = opt_id do servidor-->
+    <item>opcoes|
+      opt_id        INTEGER PRIMARY KEY,
+      cor_id        INTEGER NOT NULL,
+      opt_codigo    INTEGER,
+      opt_texto     TEXT,
+      opt_flchecked INTEGER,
+      opt_flatua    INTEGER DEFAULT 0,
+      FOREIGN KEY(cor_id) REFERENCES corpo(cor_id)
     </item>
 
   </string-array>

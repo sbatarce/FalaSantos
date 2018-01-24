@@ -2,6 +2,8 @@ package com.pms.falasantos.Atividades;
 
 /**
  * prepara a tela de escolha de alvos disponíveis para o dispositivo
+ *    busca todos os alvos disponíveis  - partes/procs.php?proc=obttialvos
+ *    monta e mostra uma lista de 2 níveis por área do alvo
  */
 
 import android.app.ProgressDialog;
@@ -38,7 +40,7 @@ public class AlvosActivity extends AppCompatActivity implements RespostaConfig
 	ElsAreasAdapter    expadapter;
 	HashMap<String, List<clAlvo>> lista = null;
 	//  variáveis usadas no HTTP
-	RequestHttp                   req   = null;
+	RequestHttp            req   = null;
 	private ProgressDialog progress;
 	private enum State
 		{
