@@ -38,7 +38,7 @@ public class firebaseToken extends FirebaseInstanceIdService implements Resposta
 	private void registraToken( String token )
 		{
 		req = new RequestHttp( this );
-		String url = Globais.dominio + "partes/funcoes.php?func=caddispositivo";
+		String url = Globais.dominio + "/partes/funcoes.php?func=caddispositivo";
 		url += "&iddes="+ URLEncoder.encode( ""+Globais.config.iddes );
 		url += "&serie="+ URLEncoder.encode( Globais.config.nuserie );
 		url += "&token="+ URLEncoder.encode( token );

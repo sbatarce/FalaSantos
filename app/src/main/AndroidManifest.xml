@@ -48,11 +48,13 @@
 
     <activity android:name=".Atividades.SetupActivity">
     </activity>
-    <activity android:name=".Atividades.MensagemActivity">
+    <activity android:name=".Atividades.MensagensActivity">
     </activity>
     <activity android:name=".Atividades.AlvosActivity">
     </activity>
     <activity android:name=".Atividades.AddAlvoActivity">
+    </activity>
+    <activity android:name=".Atividades.MensagemActivity">
     </activity>
   </application>
 

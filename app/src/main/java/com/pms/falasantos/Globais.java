@@ -20,6 +20,7 @@ import android.view.Menu;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.pms.falasantos.Atividades.AlvosActivity;
 import com.pms.falasantos.Atividades.SetupActivity;
+import com.pms.falasantos.Comunicacoes.processFBMens;
 import com.pms.falasantos.Outras.clAlvo;
 
 import java.io.File;
@@ -38,12 +39,13 @@ public class Globais
 	{
 	public static String apptag = "falaSantos";
 	
-	public static String dominio = "https://egov.santos.sp.gov.br/simensweb/";
+	public static String dominio = "https://egov.santos.sp.gov.br/simensweb";
 	
 	static private Boolean emuso = false;
 	static private Boolean semaf = false;
 	
 	static public  Context   ctx       = null;
+	static public  processFBMens pFBMens;
 	static private Resources resources = null;
 	static private String    nodb      = "falasantos.db";
 	static private String    DBfile    = "";        //  nome do db com path
@@ -56,8 +58,8 @@ public class Globais
 	static public boolean dbnew;
 	static public String lastMessage = "ok";
 	
-	static private String versaoapp = "'1.0.0";
-	static private int    versaoDB  = 1;
+	static private int    versaoDB;
+	static private int    versaoApp;
 	
 	static public Boolean alertResu = false;
 	
@@ -155,6 +157,9 @@ public class Globais
 		pathSD = Environment.getExternalStorageDirectory().getAbsolutePath();
 		publSD = Environment.getExternalStoragePublicDirectory(
 			Environment.DIRECTORY_DCIM ).getAbsolutePath();
+		versaoDB  = resources.getInteger( R.integer.dbvers );
+		versaoApp = resources.getInteger( R.integer.appvers );
+		pFBMens = new processFBMens( ctx );
 		}
 	
 	static public void setEmUso()
@@ -264,6 +269,29 @@ public class Globais
 		return res;
 		}
 	
+	static public long ixRemet( String sshd, long alv, String nome )
+		{
+		String sql =  "SELECT rem_id FROM remetentes WHERE alv_id=" + alv +
+									" AND rem_sshd='" + sshd + "'";
+		long res = -1;
+		Cursor c = db.rawQuery( sql, null );
+		if( c.moveToFirst() )
+			{
+			res = c.getLong( c.getColumnIndex( "rem_id" ) );
+			c.close();
+			return res;
+			}
+		if( c != null )
+			c.close();
+		ContentValues cv = new ContentValues( 5 );
+		cv.put( "alv_id", alv );
+		cv.put( "rem_sshd", sshd );
+		cv.put( "rem_nopessoa", nome );
+		cv.put( "rem_flsilen", 0 );
+		res = db.insert( "remetentes", null, cv );
+		return res;
+		}
+	
 	//  verifica se já foi feito setup
 	static public boolean fezSetup()
 		{
@@ -338,7 +366,7 @@ public class Globais
 			return false;
 		if( !obterConfig() )
 			return false;
-		if( !ajustaVersao( versaoDB ) )
+		if( !ajustaVersao() )
 			return false;
 		//  verifica se o telefone ja tem perfis associados
 		if( config.vrsdb == 0 )
@@ -400,56 +428,56 @@ public class Globais
 			cv = new ContentValues( 10 );
 			cv.put( "rem_id", 1 );
 			cv.put( "alv_id", 1 );
-			cv.put( "rem_idpessoa", 123 );
+			cv.put( "rem_sshd", "Z0000000" );
 			cv.put( "rem_nopessoa", "remetente 1 de 1 de 1" );
 			cv.put( "rem_flsilen", 0 );
 			ret = db.insertOrThrow( "remetentes", null, cv );
 			cv = new ContentValues( 10 );
 			cv.put( "rem_id", 2 );
 			cv.put( "alv_id", 1 );
-			cv.put( "rem_idpessoa", 123 );
+			cv.put( "rem_sshd", "Z0000000" );
 			cv.put( "rem_nopessoa", "remetente 2 de 1 de 1" );
 			cv.put( "rem_flsilen", 0 );
 			ret = db.insertOrThrow( "remetentes", null, cv );
 			cv = new ContentValues( 10 );
 			cv.put( "rem_id", 3 );
 			cv.put( "alv_id", 2 );
-			cv.put( "rem_idpessoa", 123 );
+			cv.put( "rem_sshd", "Z0000000" );
 			cv.put( "rem_nopessoa", "remetente 1 de 2 de 1" );
 			cv.put( "rem_flsilen", 0 );
 			ret = db.insertOrThrow( "remetentes", null, cv );
 			cv = new ContentValues( 10 );
 			cv.put( "rem_id", 4 );
 			cv.put( "alv_id", 2 );
-			cv.put( "rem_idpessoa", 123 );
+			cv.put( "rem_sshd", "Z0000000" );
 			cv.put( "rem_nopessoa", "remetente 2 de 2 de 1" );
 			cv.put( "rem_flsilen", 0 );
 			ret = db.insertOrThrow( "remetentes", null, cv );
 			cv = new ContentValues( 10 );
 			cv.put( "rem_id", 5 );
 			cv.put( "alv_id", 3 );
-			cv.put( "rem_idpessoa", 123 );
+			cv.put( "rem_sshd", "Z0000000" );
 			cv.put( "rem_nopessoa", "remetente 1 de 1 de 2" );
 			cv.put( "rem_flsilen", 0 );
 			ret = db.insertOrThrow( "remetentes", null, cv );
 			cv = new ContentValues( 10 );
 			cv.put( "rem_id", 6 );
 			cv.put( "alv_id", 3 );
-			cv.put( "rem_idpessoa", 123 );
+			cv.put( "rem_sshd", "Z0000000" );
 			cv.put( "rem_nopessoa", "remetente 2 de 1 de 2" );
 			cv.put( "rem_flsilen", 0 );
 			ret = db.insertOrThrow( "remetentes", null, cv );
 			cv = new ContentValues( 10 );
 			cv.put( "rem_id", 7 );
 			cv.put( "alv_id", 4 );
-			cv.put( "rem_idpessoa", 123 );
+			cv.put( "rem_sshd", "Z0000000" );
 			cv.put( "rem_nopessoa", "remetente 1 de 2 de 2" );
 			cv.put( "rem_flsilen", 0 );
 			ret = db.insertOrThrow( "remetentes", null, cv );
 			cv = new ContentValues( 10 );
 			cv.put( "rem_id", 8 );
 			cv.put( "alv_id", 4 );
-			cv.put( "rem_idpessoa", 123 );
+			cv.put( "rem_sshd", "Z0000000" );
 			cv.put( "rem_nopessoa", "remetente 2 de 2 de 2" );
 			cv.put( "rem_flsilen", 0 );
 			ret = db.insertOrThrow( "remetentes", null, cv );
@@ -462,7 +490,7 @@ public class Globais
 			cv.put( "msg_msaid", 123 );
 			cv.put( "msg_titulo", "titulo 1" );
 			cv.put( "msg_timsg", 1 );
-			cv.put( "msg_dtenvio", "201709091000" );
+			cv.put( "msg_dtreceb", "201709091000" );
 			cv.put( "msg_flatua", 0 );
 			ret = db.insertOrThrow( "mensagens", null, cv );
 			cv = new ContentValues( 15 );
@@ -471,7 +499,7 @@ public class Globais
 			cv.put( "msg_msaid", 123 );
 			cv.put( "msg_titulo", "titulo 2" );
 			cv.put( "msg_timsg", 1 );
-			cv.put( "msg_dtenvio", "201709091000" );
+			cv.put( "msg_dtreceb", "201709091000" );
 			cv.put( "msg_flatua", 0 );
 			ret = db.insertOrThrow( "mensagens", null, cv );
 			cv = new ContentValues( 15 );
@@ -480,7 +508,7 @@ public class Globais
 			cv.put( "msg_msaid", 123 );
 			cv.put( "msg_titulo", "titulo 3" );
 			cv.put( "msg_timsg", 1 );
-			cv.put( "msg_dtenvio", "201709091000" );
+			cv.put( "msg_dtreceb", "201709091000" );
 			cv.put( "msg_flatua", 0 );
 			ret = db.insertOrThrow( "mensagens", null, cv );
 			cv = new ContentValues( 15 );
@@ -489,7 +517,7 @@ public class Globais
 			cv.put( "msg_msaid", 123 );
 			cv.put( "msg_titulo", "titulo 4" );
 			cv.put( "msg_timsg", 1 );
-			cv.put( "msg_dtenvio", "201709091000" );
+			cv.put( "msg_dtreceb", "201709091000" );
 			cv.put( "msg_flatua", 0 );
 			ret = db.insertOrThrow( "mensagens", null, cv );
 			//  mensagens do remetente 8
@@ -501,7 +529,7 @@ public class Globais
 			cv.put( "msg_msaid", 123 );
 			cv.put( "msg_titulo", "titulo 5" );
 			cv.put( "msg_timsg", 1 );
-			cv.put( "msg_dtenvio", "201709091000" );
+			cv.put( "msg_dtreceb", "201709091000" );
 			cv.put( "msg_flatua", 0 );
 			ret = db.insertOrThrow( "mensagens", null, cv );
 			cv = new ContentValues( 15 );
@@ -510,7 +538,7 @@ public class Globais
 			cv.put( "msg_msaid", 123 );
 			cv.put( "msg_titulo", "titulo 6" );
 			cv.put( "msg_timsg", 1 );
-			cv.put( "msg_dtenvio", "201709091000" );
+			cv.put( "msg_dtreceb", "201709091000" );
 			cv.put( "msg_flatua", 0 );
 			ret = db.insertOrThrow( "mensagens", null, cv );
 			cv = new ContentValues( 15 );
@@ -519,7 +547,7 @@ public class Globais
 			cv.put( "msg_msaid", 123 );
 			cv.put( "msg_titulo", "titulo 7" );
 			cv.put( "msg_timsg", 1 );
-			cv.put( "msg_dtenvio", "201709091000" );
+			cv.put( "msg_dtreceb", "201709091000" );
 			cv.put( "msg_flatua", 0 );
 			ret = db.insertOrThrow( "mensagens", null, cv );
 			cv = new ContentValues( 15 );
@@ -528,7 +556,7 @@ public class Globais
 			cv.put( "msg_msaid", 123 );
 			cv.put( "msg_timsg", 1 );
 			cv.put( "msg_titulo", "titulo 8" );
-			cv.put( "msg_dtenvio", "201709091000" );
+			cv.put( "msg_dtreceb", "201709091000" );
 			cv.put( "msg_flatua", 0 );
 			ret = db.insertOrThrow( "mensagens", null, cv );
 			cv = new ContentValues( 15 );
@@ -537,7 +565,7 @@ public class Globais
 			cv.put( "msg_msaid", 123 );
 			cv.put( "msg_titulo", "titulo 9" );
 			cv.put( "msg_timsg", 1 );
-			cv.put( "msg_dtenvio", "201709091000" );
+			cv.put( "msg_dtreceb", "201709091000" );
 			cv.put( "msg_flatua", 0 );
 			ret = db.insertOrThrow( "mensagens", null, cv );
 			//  corpos de mensagens
@@ -689,17 +717,25 @@ public class Globais
 		}
 	
 	//  ajusta a versão do DB
-	static boolean ajustaVersao( int dbvers )
+	static boolean ajustaVersao()
 		{
-		if( dbvers <= config.vrsdb )
+		if( versaoDB <= config.vrsdb )
 			return true;
 		try
 			{
-			if( dbvers == 1 )
+			if( versaoDB >= 5 )
 				{
+				String alter =  "ALTER TABLE dispositivo ADD COLUMN " +
+												"dis_flpenden INTEGER DEFAULT 0";
+				db.execSQL( alter );
 				String sql = "UPDATE DISPOSITIVO SET dis_vrsdb=1, dis_vrsapp='1.0.0'";
 				db.execSQL( sql );
 				}
+			String sql = "UPDATE DISPOSITIVO SET " +
+				"dis_vrsdb=" + versaoDB + ", " +
+				"dis_vrsapp='" + versaoApp + "'";
+			db.execSQL( sql );
+			config.vrsdb = versaoDB;
 			}
 		catch( Exception exc )
 			{
@@ -897,7 +933,7 @@ public class Globais
 			}
 		return res;
 		}
-	
+	//  retorna a data corrente no formato AAAAMMDDHH24MI
 	static public String agoraDB()
 		{
 		Date dt = new Date();
@@ -929,7 +965,9 @@ public class Globais
 		String idtel = nuSerial();
 		if( idtel != null )
 			{
-			if( idtel.equals( "355256063048937" ) || idtel.equals( "000000000000000" ) )
+			if( idtel.equals( "355256063048937" ) ||
+					idtel.equals( "354133073258312" ) ||
+					idtel.equals( "000000000000000" ) )
 				{
 				menu.add( 0, R.integer.mnidToken, ++order, R.string.mntxToken );
 				menu.add( 0, R.integer.mnidTestes, ++order, R.string.mntxTestes );

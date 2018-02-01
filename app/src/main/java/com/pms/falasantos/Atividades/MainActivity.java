@@ -60,13 +60,13 @@ public class MainActivity extends AppCompatActivity
 			{
 			if( ext.containsKey( "tipo" ) )
 				{
-				int tipo = ext.getInt( "tipo" );
+				String tipo = ext.getString( "tipo" );
 				Log.i( Globais.apptag, "Iniciando a partir de notificação tipo " + tipo );
 				switch( tipo )
 					{
-					case 1:       //  notificação de mensagens
+					case "1":       //  notificação de mensagens
 						break;
-					case 2:       //  notificação de URL
+					case "2":       //  notificação de URL
 						if( ext.containsKey( "url" ) )
 							{
 							Log.i( Globais.apptag, "tem data" );
@@ -164,7 +164,7 @@ public class MainActivity extends AppCompatActivity
 				//  abre as mensagens deste remetente neste grupo
 				if( !clrem.rem.contains( "Não há mens" ))
 					{
-					Intent mens = new Intent( MainActivity.this, MensagemActivity.class );
+					Intent mens = new Intent( MainActivity.this, MensagensActivity.class );
 					mens.putExtra( "idReme", "" + clrem.idrem );
 					mens.putExtra( "noReme", clrem.rem );
 					mens.putExtra( "noAlvo", clalv.alvo );

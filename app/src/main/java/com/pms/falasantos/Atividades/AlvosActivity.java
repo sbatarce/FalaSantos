@@ -67,7 +67,7 @@ public class AlvosActivity extends AppCompatActivity implements RespostaConfig
 		                                true );
 		state = State.obteralvos;
 		req = new RequestHttp( this );
-		String url = Globais.dominio + "partes/procs.php?proc=obttialvos";
+		String url = Globais.dominio + "/partes/procs.php?proc=obttialvos";
 		req.delegate = this;
 		req.execute( url );
 		}

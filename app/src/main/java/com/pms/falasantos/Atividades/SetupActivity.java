@@ -35,9 +35,9 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 	LinearLayout llcomum, lloptfunc, lloptmuni;
 	RadioGroup rbgr;
 	
-	String cpf, dtnas, nome,
-		sshd, senha;
-	int desid;
+	String  cpf, dtnas, nome,
+					sshd, senha;
+	int     desid, iddis;
 	
 	private enum State
 		{
@@ -45,7 +45,8 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 		cadmunicipe,
 		cadfuncionario,
 		dadosfuncionario,
-		caddispositivo
+		caddispositivo,
+		obteralvos
 		}
 	State state = State.nenhum;
 	
@@ -314,7 +315,7 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 					                                true );
 					state = State.cadmunicipe;
 					req = new RequestHttp( this );
-					String url = Globais.dominio + "partes/funcoes.php?func=cadmunicipe";
+					String url = Globais.dominio + "/partes/funcoes.php?func=cadmunicipe";
 					url += "&cpf=" + URLEncoder.encode( cpf );
 					url += "&dtnas=" + URLEncoder.encode( dtnas );
 					url += "&nome=" + URLEncoder.encode( nome );
@@ -333,6 +334,10 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 	@Override
 	public void Resposta( String resposta )
 		{
+		int qtd;
+		JSONArray dados;
+		JSONObject junid;
+		ContentValues cv;
 		progress.dismiss();
 		//  verifica a parte comum a todas as respostas
 		try
@@ -360,7 +365,6 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 				return;
 				}
 			//  processamento de cada estado
-			ContentValues cv;
 			switch( state )
 				{
 				case cadmunicipe:
@@ -398,7 +402,7 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 					state = State.dadosfuncionario;
 					req = new RequestHttp( this );
 					req.setAuth( sshd, senha );
-					String url = Globais.dominio + "partes/procs.php?proc=dadosfunc";
+					String url = Globais.dominio + "/partes/procs.php?proc=dadosfunc";
 					url += "&sshd=" + URLEncoder.encode( sshd );
 					req.delegate = this;
 					req.execute( url );
@@ -417,15 +421,15 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 						Globais.Alerta( this, "Atenção!", msg );
 						return;
 						}
-					int qtd = jobj.getInt( "linhas" );
+					qtd = jobj.getInt( "linhas" );
 					if( !jobj.has( "dados" ) )
 						{
 						String msg = "Não contém dados. Por favor tente mais tarde";
 						Globais.Alerta( this, "Resposta do servidor inválida!", msg );
 						return;
 						}
-					JSONArray dados = jobj.getJSONArray( "dados" );
-					JSONObject junid = dados.getJSONObject( 0 );
+					dados = jobj.getJSONArray( "dados" );
+					junid = dados.getJSONObject( 0 );
 					nome = junid.getString( "NOME" );
 					cpf = junid.getString( "CPF" );
 					dtnas = junid.getString( "DTNASCIMENTO" );
@@ -437,7 +441,7 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 					Log.i( Globais.apptag, "caddispositivo" );
 					String token = FirebaseInstanceId.getInstance().getToken();
 					String nuser = Globais.nuSerial();
-					int iddis = jobj.getInt( "id" );
+					iddis = jobj.getInt( "id" );
 					cv = new ContentValues( 5 );
 					cv.put( "dis_id", iddis );
 					cv.put( "dis_fbtoken", token );
@@ -452,6 +456,43 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 						Globais.Alerta( this, "Banco de dados corrompido!", exc.getMessage() );
 						return;
 						}
+					//  obter eventuais alvos
+					obterAlvos();
+					break;
+					
+				case obteralvos:
+					if( !jobj.has( "linhas" ) )
+						{
+						String msg = "Não contém o contador de linhas. Por favor tente mais tarde";
+						Globais.Alerta( this, "Resposta do servidor inválida!", msg );
+						return;
+						}
+					if( jobj.getInt( "linhas" ) > 0 )
+						{
+						qtd = jobj.getInt( "linhas" );
+						if( !jobj.has( "dados" ) )
+							{
+							String msg = "Não contém dados. Por favor tente mais tarde";
+							Globais.Alerta( this, "Resposta do servidor inválida!", msg );
+							return;
+							}
+						dados = jobj.getJSONArray( "dados" );
+						for( int ix=0; ix<qtd; ix++ )
+							{
+							cv = new ContentValues( 5 );
+							junid = dados.getJSONObject( ix );
+							int idalv = junid.getInt( "IDALV" );
+							String nome = junid.getString( "ALV_DLNOME" );
+							String area = junid.getString( "AREA" );
+							long idare = Globais.ixArea( area );
+							cv.put( "alv_id", idalv );
+							cv.put( "are_id", idare );
+							cv.put( "alv_nome", nome );
+							long id = Globais.db.insert( "alvos", null, cv );
+							}
+						}
+					
+					//  acabou a configuração
 					Toast.makeText( getApplicationContext(),
 					                "Configuração efetuada. Adicione um alvo a seguir.",
 					                Toast.LENGTH_LONG ).show();
@@ -553,6 +594,21 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 			Log.i( Globais.apptag, "Globais: criaTabelas dispositivo " + e.getMessage() );
 			return;
 			}
+		}
+	
+	private void obterAlvos()
+		{
+		//  pede todos os eventuais alvos
+		progress = ProgressDialog.show( this, "Por favor, espere...", "Obtendo eventuais alvos antigos...",
+		                                true );
+		state = State.obteralvos;
+		req = new RequestHttp( this );
+		if( sshd != null && senha != null )
+			req.setAuth( sshd, senha );
+		String url = Globais.dominio + "/partes/procs.php?proc=obteralvos&iddis";
+		url += "&iddis=" + URLEncoder.encode( "" + iddis  );
+		req.delegate = this;
+		req.execute( url );
 		}
 		
 	}

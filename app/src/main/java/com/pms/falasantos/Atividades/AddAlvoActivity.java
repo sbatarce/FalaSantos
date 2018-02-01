@@ -478,10 +478,12 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 						Log.i( Globais.apptag, "Globais: criaTabelas dispositivo " + "incapaz de cadastrar a área" );
 						return;
 						}
+					long ixalvo = jobj.getLong( "id" );
 					ContentValues cv = new ContentValues( 5 );
+					cv.put( "alv_id", ixalvo );
 					cv.put( "are_id", ixarea );
 					cv.put( "alv_nome", nopes );
-					long ixalvo = Globais.db.insertOrThrow( "alvos", null, cv );
+					ixalvo = Globais.db.insertOrThrow( "alvos", null, cv );
 					if( ixalvo < 0 )
 						{
 						Globais.Alerta( this, "Banco de dados corrompido", "incapaz de cadastrar o alvo" );
