@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <integer name="mnidAddAlvo">91</integer>
-  <integer name="mnidSetup">92</integer>
-  <integer name="mnidToken">93</integer>
-  <integer name="mnidTestes">94</integer>
+  <integer name="mnidAjuda">92</integer>
+  <integer name="mnidSetup">93</integer>
+  <integer name="mnidToken">94</integer>
   <integer name="mnidRemoveDB">95</integer>
   <integer name="mnidCopyDB">96</integer>
   <integer name="mnidRecuDB">97</integer>
   <integer name="mnidInitDB">99</integer>
   <string name="mntxAddAlvo">Adicionar Alvo</string>
+  <string name="mntxAjuda">Ajuda</string>
   <string name="mntxSetup">Configuração</string>
   <string name="mntxToken">Token FCM</string>
-  <string name="mntxTestes">Testes</string>
   <string name="mntxRemoveDB">Remover o DB</string>
   <string name="mntxCopyDB">Copiar o DB</string>
   <string name="mntxRecuDB">Recuperar o DB</string>

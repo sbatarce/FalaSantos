@@ -72,6 +72,7 @@
       cor_ticorpo         INTEGER,
       cor_corpo           TEXT,
       cor_texto           TEXT,
+      cor_resposta        TEXT,
       cor_stresposta      INTEGER DEFAULT 0,
       cor_stobrigatoria   INTEGER DEFAULT 0,
       cor_flatua          INTEGER DEFAULT 0,

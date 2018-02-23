@@ -8,15 +8,18 @@ public class clMensagem
 	public String titulo;
 	public String dareceb;
 	public String  daleitu;
+	public String  daresp;
 	public String  mensagem;
 	public String  idmens;
 	public boolean flresp;      //  indica que a mensagem tem pelo menos 1 corpo com resposta
+	public boolean confidencial;      //  indica que a mensagem é confidencial
 	
-	public clMensagem( String titulo, String dareceb, String daleitu, String mensagem, String idmens )
+	public clMensagem( String titulo, String dareceb, String daleitu, String daresp, String mensagem, String idmens )
 		{
 		this.titulo = titulo;
 		this.dareceb = dareceb;
 		this.daleitu = daleitu;
+		this.daresp = daresp;
 		this.mensagem = mensagem;
 		this.idmens = idmens;
 		this.flresp = false;
@@ -28,5 +31,13 @@ public class clMensagem
 	public void setFlresp( boolean flresp )
 		{
 		this.flresp = flresp;
+		}
+	public boolean isConfidencial()
+		{
+		return confidencial;
+		}
+	public void setConfidencial( boolean confidencial )
+		{
+		this.confidencial = confidencial;
 		}
 	}

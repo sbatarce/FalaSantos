@@ -1,5 +1,6 @@
 package com.pms.falasantos.Atividades;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -34,6 +35,8 @@ public class MainActivity extends AppCompatActivity
 	ElsAlvosAdapter    expadapter;
 	HashMap<clAlvs, List<clRems>> lista = new HashMap<>();    //  lista pronta da expandabler
 	
+	private ProgressDialog progress;
+	
 	TraceNet trace;
 	
 	boolean flfim = false;
@@ -43,8 +46,9 @@ public class MainActivity extends AppCompatActivity
 		{
 		super.onCreate( savedInstanceState );
 		setContentView( R.layout.activity_main );
-		//
+		Globais.atividade = Globais.Atividade.Main;
 		Globais.setContext( this );
+		//
 		trace = new TraceNet( this );
 		//  seta o action bar
 		getSupportActionBar().setDisplayOptions( ActionBar.DISPLAY_SHOW_CUSTOM );
@@ -80,6 +84,7 @@ public class MainActivity extends AppCompatActivity
 							}
 						break;
 					}
+				Globais.pFBMens.obterMens( true );
 				}
 			}
 		//  prepara a lista de alvos
@@ -107,6 +112,8 @@ public class MainActivity extends AppCompatActivity
 	protected void onResume()
 		{
 		super.onResume();
+		Globais.atividade = Globais.Atividade.Main;
+		Globais.setContext( this );
 		//
 		if( flfim )
 			{
@@ -150,6 +157,12 @@ public class MainActivity extends AppCompatActivity
 			startActivity( setup );
 			return;
 			}
+		}
+	@Override
+	protected void onPause()
+		{
+		super.onPause();
+		Globais.atividade =  Globais.Atividade.nenhuma;
 		}
 	//
 	private void setupList()

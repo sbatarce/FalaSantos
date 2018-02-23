@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
     tools:context="com.pms.falasantos.Atividades.SetupActivity">
 
   <TextView
@@ -16,33 +15,45 @@
       android:textSize="24sp"
       android:textStyle="bold"/>
 
+  <ImageButton
+      android:id="@+id/btInforma"
+      android:layout_width="32dp"
+      android:layout_height="32dp"
+      android:layout_alignParentEnd="true"
+      android:adjustViewBounds="true"
+      android:background="@drawable/informa"
+      android:clickable="true"
+      android:onClick="onClick"/>
+
+  <!-- grupo exclusivo funcionário/munícipe -->
   <RadioGroup
       android:id="@+id/rgEscUser"
-      android:layout_below="@id/tvEscUser"
-      android:orientation="vertical"
       android:layout_width="match_parent"
-      android:layout_height="wrap_content">
+      android:layout_height="wrap_content"
+      android:layout_below="@id/tvEscUser"
+      android:orientation="vertical">
 
     <RadioButton
         android:id="@+id/rbFunc"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="20dp"
         android:text="Funcionário ou terceiro da Prefeitura"/>
 
     <RadioButton
         android:id="@+id/rbMunic"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_height="20dp"
         android:text="Munícipe"/>
 
   </RadioGroup>
 
+  <!-- layout contendo a parte comum: horários, uso de banda/wifi silenciar -->
   <LinearLayout
       android:id="@+id/llComum"
-      android:orientation="vertical"
-      android:layout_below="@id/rgEscUser"
       android:layout_width="match_parent"
-      android:layout_height="wrap_content">
+      android:layout_height="wrap_content"
+      android:layout_below="@id/rgEscUser"
+      android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -56,9 +67,10 @@
 
       <EditText
           android:id="@+id/txHrInic"
-          android:layout_width="match_parent"
+          android:layout_width="wrap_content"
           android:layout_height="wrap_content"
           android:inputType="time"
+          android:minWidth="100dp"
           android:text="08:00"/>
 
     </LinearLayout>
@@ -75,33 +87,74 @@
 
       <EditText
           android:id="@+id/txHrFinal"
-          android:layout_width="match_parent"
+          android:layout_width="wrap_content"
           android:layout_height="wrap_content"
           android:inputType="time"
+          android:minWidth="100dp"
           android:text="21:00"/>
 
     </LinearLayout>
 
     <CheckBox
         android:id="@+id/ckWIFI"
-        android:text="Não usar a Banda do Celular (Só WIFI)"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="20dp"
+        android:text="Não usar a Banda do Celular (Só WIFI)"/>
 
     <CheckBox
         android:id="@+id/ckSilen"
-        android:text="Sem sons de notificação"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="20dp"
+        android:text="Sem sons de notificação"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+      <TextView
+          android:layout_width="100dp"
+          android:layout_height="wrap_content"
+          android:text="Questão Senha"/>
+
+      <EditText
+          android:id="@+id/txQuestao"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:minWidth="100dp"
+          android:text="Com quantos paus se faz uma canôa"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+      <TextView
+          android:layout_width="100dp"
+          android:layout_height="wrap_content"
+          android:text="Senha"/>
+
+      <EditText
+          android:id="@+id/txSenhaConf"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:inputType="textVisiblePassword"
+          android:minWidth="100dp"
+          android:text="floquinho"/>
+
+    </LinearLayout>
 
   </LinearLayout>
 
+  <!-- layout aplicado a possuidores de SSHD/Senha -->
   <LinearLayout
       android:id="@+id/llOptFunc"
-      android:orientation="vertical"
-      android:layout_below="@id/llComum"
       android:layout_width="match_parent"
-      android:layout_height="wrap_content">
+      android:layout_height="wrap_content"
+      android:layout_below="@id/llComum"
+      android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -115,9 +168,10 @@
 
       <EditText
           android:id="@+id/txSSHD"
-          android:layout_width="match_parent"
+          android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:inputType="textVisiblePassword"/>
+          android:inputType="textVisiblePassword"
+          android:minWidth="150dp"/>
 
     </LinearLayout>
 
@@ -133,20 +187,22 @@
 
       <EditText
           android:id="@+id/txSenha"
-          android:layout_width="match_parent"
+          android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:inputType="textPassword"/>
+          android:inputType="textPassword"
+          android:minWidth="150dp"/>
 
     </LinearLayout>
 
   </LinearLayout>
 
+  <!-- layout aplicado a não possuidores de SSHD/Senha -->
   <LinearLayout
       android:id="@+id/llOptMuni"
-      android:orientation="vertical"
-      android:layout_below="@id/llComum"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
+      android:layout_below="@id/llComum"
+      android:orientation="vertical"
       android:weightSum="1">
 
     <LinearLayout
@@ -161,9 +217,10 @@
 
       <EditText
           android:id="@+id/txNome"
-          android:layout_width="match_parent"
+          android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:inputType="textCapWords|textPersonName"/>
+          android:inputType="textCapWords|textPersonName"
+          android:minWidth="150dp"/>
 
     </LinearLayout>
 
@@ -179,9 +236,10 @@
 
       <EditText
           android:id="@+id/txDtNasc"
-          android:layout_width="match_parent"
+          android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:inputType="date"/>
+          android:inputType="date"
+          android:minWidth="150dp"/>
 
     </LinearLayout>
 
@@ -197,22 +255,23 @@
 
       <EditText
           android:id="@+id/txCPF"
-          android:layout_width="match_parent"
+          android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:inputType="number"/>
+          android:inputType="number"
+          android:minWidth="150dp"/>
 
     </LinearLayout>
 
   </LinearLayout>
 
+  <!-- botões de ação final OK/Cancel -->
   <LinearLayout
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
+      android:layout_alignParentBottom="true"
       android:layout_alignParentStart="true"
-      android:layout_weight="9.90"
       android:gravity="center_horizontal"
-      android:orientation="horizontal"
-      android:layout_alignParentBottom="true">
+      android:orientation="horizontal">
 
     <Button
         android:id="@+id/btSetupOK"

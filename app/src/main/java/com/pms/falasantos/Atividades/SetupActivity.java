@@ -35,22 +35,24 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 	LinearLayout llcomum, lloptfunc, lloptmuni;
 	RadioGroup rbgr;
 	
-	String  cpf, dtnas, nome,
-					sshd, senha;
-	int     desid, iddis;
+	String cpf, dtnas, nome,
+		sshd, senha;
+	int desid, iddis;
 	
 	private enum State
 		{
-		nenhum,
-		cadmunicipe,
-		cadfuncionario,
-		dadosfuncionario,
-		caddispositivo,
-		obteralvos
+			nenhum,
+			cadmunicipe,
+			cadfuncionario,
+			dadosfuncionario,
+			caddispositivo,
+			obteralvos
 		}
 	State state = State.nenhum;
 	
-	boolean flokc = false;
+	boolean flokc = false,
+		flwifi      = false,
+		flsile      = false;
 	
 	RequestHttp req = null;
 	private ProgressDialog progress;
@@ -60,6 +62,8 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 		{
 		super.onCreate( savedInstanceState );
 		setContentView( R.layout.activity_setup );
+		Globais.atividade = Globais.Atividade.Setup;
+		Globais.setContext( this );
 		//  prepara a visualização da tela
 		setRadioBT();
 		if( !Globais.obterConfig() )
@@ -142,8 +146,15 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 	protected void onResume()
 		{
 		super.onResume();
+		Globais.atividade = Globais.Atividade.Setup;
+		Globais.setContext( this );
 		}
-	
+	@Override
+	protected void onPause()
+		{
+		super.onPause();
+		Globais.atividade = Globais.Atividade.nenhuma;
+		}
 	@Override
 	public void onWindowFocusChanged( boolean hasFocus )
 		{
@@ -167,6 +178,9 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 	@Override
 	public void onClick( View v )
 		{
+		if( v == findViewById( R.id.btInforma ) )
+			{
+			}
 		if( v == findViewById( R.id.btSetupCancel ) )
 			{
 			if( !Globais.fezSetup() )
@@ -196,6 +210,14 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 				                        "Encerrar" );
 				return;
 				}
+			if( ((CheckBox) findViewById( R.id.ckWIFI )).isChecked() )
+				flwifi = true;
+			else
+				flwifi = false;
+			if( ((CheckBox) findViewById( R.id.ckSilen )).isChecked() )
+				flsile = true;
+			else
+				flsile = false;
 			if( ((RadioButton) findViewById( R.id.rbFunc )).isChecked() )
 				{
 				//  de funcionario
@@ -241,7 +263,7 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 					state = State.cadfuncionario;
 					req = new RequestHttp( this );
 					req.setAuth( sshd, senha );
-					String url = Globais.dominio + "partes/funcoes.php?func=cadfuncionario";
+					String url = Globais.dominio + "/partes/funcoes.php?func=cadfuncionario";
 					url += "&sshd=" + URLEncoder.encode( sshd );
 					req.delegate = this;
 					req.execute( url );
@@ -446,6 +468,15 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 					cv.put( "dis_id", iddis );
 					cv.put( "dis_fbtoken", token );
 					cv.put( "dis_nuserie", nuser );
+					if( flwifi )
+						cv.put( "dis_flwifi", 1 );
+					else
+						cv.put( "dis_flwifi", 0 );
+					if( flsile )
+						cv.put( "dis_flsilen", 1 );
+					else
+						cv.put( "dis_flsilen", 0 );
+					
 					try
 						{
 						int ret = Globais.db.update( "dispositivo", cv, null, null );

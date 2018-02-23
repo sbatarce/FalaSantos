@@ -3,29 +3,33 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:orientation="vertical"
     tools:context="com.pms.falasantos.Atividades.MensagemActivity">
 
   <TextView
-      android:text="texto de teste"
       android:id="@+id/txTitMens"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:layout_marginLeft="2dp"
       android:layout_marginTop="2dp"
-      android:textSize="18dp"
+      android:background="@drawable/bordaarred"
+      android:text="texto de teste"
       android:textAlignment="center"
-      android:background="@drawable/bordaarred"/>
+      android:textSize="18dp"/>
 
-  <LinearLayout
-      android:id="@+id/llmensagem"
+  <ScrollView
       android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:orientation="vertical">
+      android:layout_height="match_parent">
 
-  </LinearLayout>
+    <LinearLayout
+        android:id="@+id/llmensagem"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+    </LinearLayout>
 
+  </ScrollView>
 
 </LinearLayout>

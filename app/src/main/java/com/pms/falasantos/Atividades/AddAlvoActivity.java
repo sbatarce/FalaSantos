@@ -66,8 +66,10 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 	@Override
 	protected void onCreate( Bundle savedInstanceState )
 		{
-		boolean ok = true;
 		super.onCreate( savedInstanceState );
+		Globais.atividade = Globais.Atividade.AddAlvo;
+		Globais.setContext( this );
+		boolean ok = true;
 		setContentView( R.layout.activity_add_alvo );
 		//
 		getSupportActionBar().setDisplayOptions( ActionBar.DISPLAY_SHOW_CUSTOM );
@@ -339,7 +341,19 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 				
 			}
 		}
-	
+	@Override
+	protected void onResume()
+		{
+		super.onResume();
+		Globais.atividade = Globais.Atividade.AddAlvo;
+		Globais.setContext( this );
+		}
+	@Override
+	protected void onPause()
+		{
+		super.onPause();
+		Globais.atividade = Globais.Atividade.nenhuma;
+		}
 	public void onClick( View view )
 		{
 		if( view.getId() == idOK )
@@ -348,7 +362,9 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 			EditText edtx;
 			String val;
 			clAlvo clalvo = Globais.getClalvo();
-			String body = "{ \"alvo\": \"" + clalvo.id + "\"";
+			String body = "{ \"alvo\": \"" + clalvo.id + "\",";
+			body += "\"destinatario\": \"" + Globais.config.destin + "\",";
+			body += "\"dispositivo\": \"" + Globais.config.nuserie + "\"";
 			for( clCampo cmp : clalvo.campos )
 				{
 				id = cmp.id;

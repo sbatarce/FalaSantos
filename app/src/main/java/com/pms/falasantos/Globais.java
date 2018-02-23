@@ -9,8 +9,6 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.media.MediaScannerConnection;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Environment;
 import android.support.v4.content.ContextCompat;
 import android.telephony.TelephonyManager;
@@ -39,10 +37,28 @@ public class Globais
 	{
 	public static String apptag = "falaSantos";
 	
+	private static boolean netState  = false;
+	private static boolean wifiState = false;
+	private static boolean connState   = false;
+	
+	public enum Atividade
+		{
+		nenhuma,
+		AddAlvo,
+		Alvos,
+		Main,
+		Mensagem,
+		Mensagens,
+		Setup
+		}
+	public static Atividade atividade = Atividade.nenhuma;
+	
 	public static String dominio = "https://egov.santos.sp.gov.br/simensweb";
 	
 	static private Boolean emuso = false;
 	static private Boolean semaf = false;
+	
+	static public long delayRefresh = 1800000;
 	
 	static public  Context   ctx       = null;
 	static public  processFBMens pFBMens;
@@ -132,6 +148,38 @@ public class Globais
 				}
 			} );
 		alertDialog.show();
+		}
+	
+	static public boolean temNovidades()
+		{
+		boolean flatua = false;
+		String sql = "SELECT dis_flatua FROM dispositivo";
+		Cursor c = Globais.db.rawQuery( sql, null );
+		if( c.moveToFirst() )
+			{
+			if( c.getInt( c.getColumnIndex( "dis_flatua" ) ) == 1 )
+				flatua = true;
+			else
+				flatua = false;
+			if( c != null )
+				c.close();
+			}
+		else
+			{
+			if( c != null )
+				c.close();
+			}
+		return flatua;
+		}
+	
+	static public void semNovidades()
+		{
+		Globais.db.execSQL( "UPDATE dispositivo SET dis_flatua=0" );
+		}
+	
+	static public void comNovidades()
+		{
+		Globais.db.execSQL( "UPDATE dispositivo SET dis_flatua=1" );
 		}
 	
 	static public String nuSerial()
@@ -227,27 +275,57 @@ public class Globais
 	
 	static public boolean isConnected()
 		{
-		ConnectivityManager cm = (ConnectivityManager) ctx.getSystemService(
-			Context.CONNECTIVITY_SERVICE );
-		NetworkInfo netInfo = cm.getActiveNetworkInfo();
-		
-		if( netInfo != null )
+		return connState;
+		}
+	
+	static private boolean verifyConn()
+		{
+		if( config.flWIFI )
+			return wifiState;
+		else
+			return netState || wifiState;
+		}
+	
+	static public void setConnected( boolean conn )
+		{
+		if( netState == conn )
+			return;
+		//  verifica se mudou o estado da conecção
+		netState = conn;
+		boolean stt = verifyConn();
+		if( stt == connState )
+			return;
+		//  mudou
+		connState = stt;
+		if( stt )        //  está conectando ?
 			{
-			if( netInfo.isConnectedOrConnecting() || netInfo.isConnected() )
-				{
-				if( config.flWIFI )
-					{
-					NetworkInfo mWifi = cm.getNetworkInfo( ConnectivityManager.TYPE_WIFI );
-					if( mWifi.isConnected() )
-						return true;
-					else
-						return false;
-					}
-				else
-					return true;
-				}
+			Log.i( apptag, "setConnected conectou Conn=" + netState + " WIFI=" + wifiState );
+			pFBMens.mandaRespostas();
 			}
-		return false;
+		else
+			Log.i( apptag, "setConnected Desonectou");
+		}
+	
+	static public void setWifi( boolean conn )
+		{
+		if( wifiState == conn )
+			return;
+		//  verifica se mudou o estado da conecção
+		wifiState = conn;
+		boolean stt = verifyConn();
+		if( stt == connState )
+			return;
+		//  mudou
+		connState = stt;
+		if( stt )            //  está conectando?
+			{
+			Log.i( apptag, "setWifi conectou Conn=" + netState + " WIFI=" + wifiState );
+			pFBMens.mandaRespostas();
+			}
+		else
+			Log.i( apptag, "setWifi desconectou ");
+		
+		return;
 		}
 	
 	static public long ixArea( String area )
@@ -372,278 +450,6 @@ public class Globais
 		if( config.vrsdb == 0 )
 			dbnew = true;
 		dbOK = true;
-		return true;
-		}
-	
-	private static boolean dadosTeste()
-		{
-		ContentValues cv;
-		String sql, local;
-		long ret;
-		try
-			{
-			//  cria areas
-			cv = new ContentValues( 5 );
-			cv.put( "are_id", 100 );
-			cv.put( "are_nome", "Ponto" );
-			ret = db.insertOrThrow( "areas", null, cv );
-			cv = new ContentValues( 5 );
-			cv.put( "are_id", 102 );
-			cv.put( "are_nome", "Educação" );
-			ret = db.insertOrThrow( "areas", null, cv );
-			cv = new ContentValues( 5 );
-			cv.put( "are_id", 103 );
-			cv.put( "are_nome", "Saúde" );
-			ret = db.insertOrThrow( "areas", null, cv );
-			cv = new ContentValues( 5 );
-			cv.put( "are_id", 199 );
-			cv.put( "are_nome", "Comunicação" );
-			ret = db.insertOrThrow( "areas", null, cv );
-			//  alvos
-			sql = "INSERT INTO  VALUES " +
-				"(  )";
-			cv = new ContentValues( 10 );
-			cv.put( "alv_id", 1 );
-			cv.put( "are_id", 100 );
-			cv.put( "alv_nome", "alvo 1 de 1" );
-			ret = db.insertOrThrow( "alvos", null, cv );
-			cv = new ContentValues( 10 );
-			cv.put( "alv_id", 2 );
-			cv.put( "are_id", 100 );
-			cv.put( "alv_nome", "alvo 2 de 1" );
-			ret = db.insertOrThrow( "alvos", null, cv );
-			cv = new ContentValues( 10 );
-			cv.put( "alv_id", 3 );
-			cv.put( "are_id", 102 );
-			cv.put( "alv_nome", "alvo 1 de 2" );
-			ret = db.insertOrThrow( "alvos", null, cv );
-			cv = new ContentValues( 10 );
-			cv.put( "alv_id", 4 );
-			cv.put( "are_id", 102 );
-			cv.put( "alv_nome", "alvo 2 de 2" );
-			ret = db.insertOrThrow( "alvos", null, cv );
-			//  remetentes
-			sql = "INSERT INTO  VALUES " +
-				"(  )";
-			cv = new ContentValues( 10 );
-			cv.put( "rem_id", 1 );
-			cv.put( "alv_id", 1 );
-			cv.put( "rem_sshd", "Z0000000" );
-			cv.put( "rem_nopessoa", "remetente 1 de 1 de 1" );
-			cv.put( "rem_flsilen", 0 );
-			ret = db.insertOrThrow( "remetentes", null, cv );
-			cv = new ContentValues( 10 );
-			cv.put( "rem_id", 2 );
-			cv.put( "alv_id", 1 );
-			cv.put( "rem_sshd", "Z0000000" );
-			cv.put( "rem_nopessoa", "remetente 2 de 1 de 1" );
-			cv.put( "rem_flsilen", 0 );
-			ret = db.insertOrThrow( "remetentes", null, cv );
-			cv = new ContentValues( 10 );
-			cv.put( "rem_id", 3 );
-			cv.put( "alv_id", 2 );
-			cv.put( "rem_sshd", "Z0000000" );
-			cv.put( "rem_nopessoa", "remetente 1 de 2 de 1" );
-			cv.put( "rem_flsilen", 0 );
-			ret = db.insertOrThrow( "remetentes", null, cv );
-			cv = new ContentValues( 10 );
-			cv.put( "rem_id", 4 );
-			cv.put( "alv_id", 2 );
-			cv.put( "rem_sshd", "Z0000000" );
-			cv.put( "rem_nopessoa", "remetente 2 de 2 de 1" );
-			cv.put( "rem_flsilen", 0 );
-			ret = db.insertOrThrow( "remetentes", null, cv );
-			cv = new ContentValues( 10 );
-			cv.put( "rem_id", 5 );
-			cv.put( "alv_id", 3 );
-			cv.put( "rem_sshd", "Z0000000" );
-			cv.put( "rem_nopessoa", "remetente 1 de 1 de 2" );
-			cv.put( "rem_flsilen", 0 );
-			ret = db.insertOrThrow( "remetentes", null, cv );
-			cv = new ContentValues( 10 );
-			cv.put( "rem_id", 6 );
-			cv.put( "alv_id", 3 );
-			cv.put( "rem_sshd", "Z0000000" );
-			cv.put( "rem_nopessoa", "remetente 2 de 1 de 2" );
-			cv.put( "rem_flsilen", 0 );
-			ret = db.insertOrThrow( "remetentes", null, cv );
-			cv = new ContentValues( 10 );
-			cv.put( "rem_id", 7 );
-			cv.put( "alv_id", 4 );
-			cv.put( "rem_sshd", "Z0000000" );
-			cv.put( "rem_nopessoa", "remetente 1 de 2 de 2" );
-			cv.put( "rem_flsilen", 0 );
-			ret = db.insertOrThrow( "remetentes", null, cv );
-			cv = new ContentValues( 10 );
-			cv.put( "rem_id", 8 );
-			cv.put( "alv_id", 4 );
-			cv.put( "rem_sshd", "Z0000000" );
-			cv.put( "rem_nopessoa", "remetente 2 de 2 de 2" );
-			cv.put( "rem_flsilen", 0 );
-			ret = db.insertOrThrow( "remetentes", null, cv );
-			//  mensagens do remetente 1
-			sql = "INSERT INTO  VALUES " +
-				"(  )";
-			cv = new ContentValues( 15 );
-			cv.put( "msg_id", 1 );
-			cv.put( "rem_id", 1 );
-			cv.put( "msg_msaid", 123 );
-			cv.put( "msg_titulo", "titulo 1" );
-			cv.put( "msg_timsg", 1 );
-			cv.put( "msg_dtreceb", "201709091000" );
-			cv.put( "msg_flatua", 0 );
-			ret = db.insertOrThrow( "mensagens", null, cv );
-			cv = new ContentValues( 15 );
-			cv.put( "msg_id", 2 );
-			cv.put( "rem_id", 1 );
-			cv.put( "msg_msaid", 123 );
-			cv.put( "msg_titulo", "titulo 2" );
-			cv.put( "msg_timsg", 1 );
-			cv.put( "msg_dtreceb", "201709091000" );
-			cv.put( "msg_flatua", 0 );
-			ret = db.insertOrThrow( "mensagens", null, cv );
-			cv = new ContentValues( 15 );
-			cv.put( "msg_id", 3 );
-			cv.put( "rem_id", 1 );
-			cv.put( "msg_msaid", 123 );
-			cv.put( "msg_titulo", "titulo 3" );
-			cv.put( "msg_timsg", 1 );
-			cv.put( "msg_dtreceb", "201709091000" );
-			cv.put( "msg_flatua", 0 );
-			ret = db.insertOrThrow( "mensagens", null, cv );
-			cv = new ContentValues( 15 );
-			cv.put( "msg_id", 4 );
-			cv.put( "rem_id", 1 );
-			cv.put( "msg_msaid", 123 );
-			cv.put( "msg_titulo", "titulo 4" );
-			cv.put( "msg_timsg", 1 );
-			cv.put( "msg_dtreceb", "201709091000" );
-			cv.put( "msg_flatua", 0 );
-			ret = db.insertOrThrow( "mensagens", null, cv );
-			//  mensagens do remetente 8
-			sql = "INSERT INTO  VALUES " +
-				"(  )";
-			cv = new ContentValues( 15 );
-			cv.put( "msg_id", 5 );
-			cv.put( "rem_id", 8 );
-			cv.put( "msg_msaid", 123 );
-			cv.put( "msg_titulo", "titulo 5" );
-			cv.put( "msg_timsg", 1 );
-			cv.put( "msg_dtreceb", "201709091000" );
-			cv.put( "msg_flatua", 0 );
-			ret = db.insertOrThrow( "mensagens", null, cv );
-			cv = new ContentValues( 15 );
-			cv.put( "msg_id", 6 );
-			cv.put( "rem_id", 8 );
-			cv.put( "msg_msaid", 123 );
-			cv.put( "msg_titulo", "titulo 6" );
-			cv.put( "msg_timsg", 1 );
-			cv.put( "msg_dtreceb", "201709091000" );
-			cv.put( "msg_flatua", 0 );
-			ret = db.insertOrThrow( "mensagens", null, cv );
-			cv = new ContentValues( 15 );
-			cv.put( "msg_id", 7 );
-			cv.put( "rem_id", 8 );
-			cv.put( "msg_msaid", 123 );
-			cv.put( "msg_titulo", "titulo 7" );
-			cv.put( "msg_timsg", 1 );
-			cv.put( "msg_dtreceb", "201709091000" );
-			cv.put( "msg_flatua", 0 );
-			ret = db.insertOrThrow( "mensagens", null, cv );
-			cv = new ContentValues( 15 );
-			cv.put( "msg_id", 8 );
-			cv.put( "rem_id", 8 );
-			cv.put( "msg_msaid", 123 );
-			cv.put( "msg_timsg", 1 );
-			cv.put( "msg_titulo", "titulo 8" );
-			cv.put( "msg_dtreceb", "201709091000" );
-			cv.put( "msg_flatua", 0 );
-			ret = db.insertOrThrow( "mensagens", null, cv );
-			cv = new ContentValues( 15 );
-			cv.put( "msg_id", 9 );
-			cv.put( "rem_id", 2 );
-			cv.put( "msg_msaid", 123 );
-			cv.put( "msg_titulo", "titulo 9" );
-			cv.put( "msg_timsg", 1 );
-			cv.put( "msg_dtreceb", "201709091000" );
-			cv.put( "msg_flatua", 0 );
-			ret = db.insertOrThrow( "mensagens", null, cv );
-			//  corpos de mensagens
-			sql = "INSERT INTO  VALUES " +
-				"(  )";
-			cv = new ContentValues( 10 );
-			cv.put( "cor_id", 1 );
-			cv.put( "msg_id", 1 );
-			cv.put( "cor_ticorpo", 1 );
-			cv.put( "cor_texto", "corpo 1 mensagem 1" );
-			ret = db.insertOrThrow( "corpo", null, cv );
-			cv = new ContentValues( 10 );
-			cv.put( "cor_id", 2 );
-			cv.put( "msg_id", 1 );
-			cv.put( "cor_ticorpo", 1 );
-			cv.put( "cor_texto", "corpo 2 mensagem 1" );
-			ret = db.insertOrThrow( "corpo", null, cv );
-			cv = new ContentValues( 10 );
-			cv.put( "cor_id", 3 );
-			cv.put( "msg_id", 2 );
-			cv.put( "cor_ticorpo", 1 );
-			cv.put( "cor_texto", "corpo 1 mensagem 2" );
-			ret = db.insertOrThrow( "corpo", null, cv );
-			cv = new ContentValues( 10 );
-			cv.put( "cor_id", 4 );
-			cv.put( "msg_id", 3 );
-			cv.put( "cor_ticorpo", 1 );
-			cv.put( "cor_texto", "corpo 1 mensagem 3" );
-			ret = db.insertOrThrow( "corpo", null, cv );
-			cv = new ContentValues( 10 );
-			cv.put( "cor_id", 5 );
-			cv.put( "msg_id", 4 );
-			cv.put( "cor_ticorpo", 1 );
-			cv.put( "cor_texto", "corpo 1 mensagem 4" );
-			ret = db.insertOrThrow( "corpo", null, cv );
-			cv = new ContentValues( 10 );
-			cv.put( "cor_id", 6 );
-			cv.put( "msg_id", 5 );
-			cv.put( "cor_ticorpo", 1 );
-			cv.put( "cor_texto", "corpo 1 mensagem 5" );
-			ret = db.insertOrThrow( "corpo", null, cv );
-			cv = new ContentValues( 10 );
-			cv.put( "cor_id", 7 );
-			cv.put( "msg_id", 6 );
-			cv.put( "cor_ticorpo", 1 );
-			cv.put( "cor_texto", "corpo 1 mensagem 6" );
-			ret = db.insertOrThrow( "corpo", null, cv );
-			cv = new ContentValues( 10 );
-			cv.put( "cor_id", 8 );
-			cv.put( "msg_id", 7 );
-			cv.put( "cor_ticorpo", 1 );
-			cv.put( "cor_texto", "corpo 1 mensagem 7" );
-			ret = db.insertOrThrow( "corpo", null, cv );
-			cv = new ContentValues( 10 );
-			cv.put( "cor_id", 9 );
-			cv.put( "msg_id", 8 );
-			cv.put( "cor_ticorpo", 1 );
-			cv.put( "cor_texto", "corpo 1 mensagem 8" );
-			ret = db.insertOrThrow( "corpo", null, cv );
-			cv = new ContentValues( 10 );
-			cv.put( "cor_id", 10 );
-			cv.put( "msg_id", 8 );
-			cv.put( "cor_ticorpo", 1 );
-			cv.put( "cor_texto", "http://www.tetra.srv.br" );
-			ret = db.insertOrThrow( "corpo", null, cv );
-			cv = new ContentValues( 10 );
-			cv.put( "cor_id", 11 );
-			cv.put( "msg_id", 9 );
-			cv.put( "cor_ticorpo", 1 );
-			cv.put( "cor_texto", "corpo 1 mensagem 9" );
-			ret = db.insertOrThrow( "corpo", null, cv );
-			}
-		catch( Exception e )
-			{
-			lastMessage = e.getMessage();
-			Log.i( apptag, "Globais: criando testes " + e.getMessage() );
-			return false;
-			}
 		return true;
 		}
 	
@@ -957,10 +763,67 @@ public class Globais
 		return dtdb;
 		}
 	
+	static private void helpAddAlvo()
+		{
+		String msg =  "-";
+		Globais.Alerta( ctx, "Ajuda", msg );
+		}
+	
+	static private void helpAlvos()
+		{
+		String msg =  "-";
+		Globais.Alerta( ctx, "Ajuda", msg );
+		}
+	
+	static private void helpMain()
+		{
+		String msg =  "-Tela inicial do FalaSantos.\n" +
+			"-Abaixo estão todos os \"alvos\" nos quais você mostrou interesse.\n" +
+			"-Toque em qualquer um deles e sugirão os remetentes associados ao alvo tocado.\n" +
+			"-Toque em um dos remetentes para ler as mensagens do mesmo.";
+		Globais.Alerta( ctx, "Ajuda", msg );
+		}
+	
+	static private void helpMensagem()
+		{
+		String msg =  "-";
+		Globais.Alerta( ctx, "Ajuda", msg );
+		}
+	
+	static private void helpMensagens()
+		{
+		String msg =  "-";
+		Globais.Alerta( ctx, "Ajuda", msg );
+		}
+	
+	static private void helpSetup()
+		{
+		String msg =
+			"-Se você for funcionário ou terceiro da Prefeitura e possuir " +
+			"SSHD, marque \"Funcionário ou terceiro da Prefeitura\".\n" +
+			"-Caso contrário marque \"Munícipe\".\n" +
+			"-Os horários inicial e final definem o intervalo em que você aceita receber notificações.\n" +
+			"-Se vocẽ não quiser usar seu plano de dados para receber as mensagens da Prefeitura, " +
+			"marque \"Não usar a banda do celular(so WIFI)\". " +
+			"Mesmo conectado pela banda larga, você continuará a receber notificações da Prefeitura " +
+			"mas as mensagens só serão enviadas ao seu celular quando você estiver conectado via WIFI.\n" +
+			"-Crie uma senha para que você possa ler mensagens confidenciais. Alguma mensagens " +
+			"somente deverão ser vistas por você e você somente poderá acessá-las se tiver uma " +
+			"senha cadastrada. Crie uma senha e a escreva nocampo \"Senha\". No campo \"Questão Senha\" " +
+			"escreva uma pergunta cuja resposta seja a senha. Caso voce a esqueça mostraremos " +
+			"a pergunta para te auxiliar. Por exemplo:\n" +
+			"Questão Senha: nome do meu primeiro cãozinho\n" +
+			"Senha: floquinho\n" +
+			"Evite usar letras maiúsculas e acentos na senha para evitar dúvidas.\n" +
+			"Quando solicitado, mostraremos a Questão Senha de forma a te relembrar a senha criada.";
+		Globais.Alerta( ctx, "Ajuda", msg );
+		}
+	
 	static public void setMenuPadrao( Context contx, Menu menu )
 		{
 		int order = 0;
 		menu.add( 0, R.integer.mnidAddAlvo, ++order, R.string.mntxAddAlvo );
+		menu.add( 0, R.integer.mnidAjuda, ++order, R.string.mntxAjuda );
 		menu.add( 0, R.integer.mnidSetup, ++order, R.string.mntxSetup );
 		String idtel = nuSerial();
 		if( idtel != null )
@@ -970,7 +833,6 @@ public class Globais
 					idtel.equals( "000000000000000" ) )
 				{
 				menu.add( 0, R.integer.mnidToken, ++order, R.string.mntxToken );
-				menu.add( 0, R.integer.mnidTestes, ++order, R.string.mntxTestes );
 				menu.add( 0, R.integer.mnidRemoveDB, ++order, R.string.mntxRemoveDB );
 				menu.add( 0, R.integer.mnidCopyDB, ++order, R.string.mntxCopyDB );
 				menu.add( 0, R.integer.mnidRecuDB, ++order, R.string.mntxRecuDB );
@@ -981,6 +843,7 @@ public class Globais
 	
 	static public void prcMenuItem( Context ctx, int idmenu )
 		{
+		Log.i( apptag, "prcMenu: " + ctx.getClass().getSimpleName() );
 		if( idmenu == R.integer.mnidAddAlvo )
 			{
 			if( isConnected() )
@@ -998,6 +861,31 @@ public class Globais
 				Alerta( ctx, "Sem conexão", msg );
 				}
 			return;
+			}
+		
+		if( idmenu == R.integer.mnidAjuda )
+			{
+			switch( ctx.getClass().getSimpleName() )
+				{
+				case "MainActivity":
+					helpMain();
+					break;
+				case "AlvosActivity":
+					helpAlvos();
+					break;
+				case "SetupActivity":
+					helpSetup();
+					break;
+				case "AddAlvoActivity":
+					helpAddAlvo();
+					break;
+				case "MensagemActivity":
+					helpMensagem();
+					break;
+				case "MensagensActivity":
+					helpMensagens();
+					break;
+				}
 			}
 		
 		if( idmenu == R.integer.mnidSetup )
@@ -1048,18 +936,6 @@ public class Globais
 			{
 			recuDB( pathSD + "/transfer/" + nodb );
 			return;
-			}
-		
-		if( idmenu == R.integer.mnidTestes )
-			{
-			
-			Globais.Alerta( ctx, "Titulo", "Mensagem linha 1\nMensagem Linha 2" );
-			return;
-			}
-		
-		if( idmenu == R.integer.mnidInitDB )
-			{
-			dadosTeste();
 			}
 		}
 	//  utilitarios

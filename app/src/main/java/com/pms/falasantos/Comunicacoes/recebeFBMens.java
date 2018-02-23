@@ -67,7 +67,7 @@ public class recebeFBMens extends FirebaseMessagingService
 				}
 			else
 				{
-				Globais.pFBMens.obterMens();
+				Globais.pFBMens.obterMens( false );
 				}
 				
 			}
@@ -79,7 +79,7 @@ public class recebeFBMens extends FirebaseMessagingService
 			Log.i( Globais.apptag, "Message Notification Title: " + fbmens.getNotification().getTitle() );
 			}
 		
-		sendNotification( "Texto do sendNotification" );
+		//sendNotification( "Texto do sendNotification" );
 		}
 // [END receive_message]
 	

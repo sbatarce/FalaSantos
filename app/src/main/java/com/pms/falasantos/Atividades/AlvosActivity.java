@@ -54,6 +54,8 @@ public class AlvosActivity extends AppCompatActivity implements RespostaConfig
 	protected void onCreate( Bundle savedInstanceState )
 		{
 		super.onCreate( savedInstanceState );
+		Globais.atividade = Globais.Atividade.Alvos;
+		Globais.setContext( this );
 		setContentView( R.layout.activity_alvos );
 		//
 		getSupportActionBar().setDisplayOptions( ActionBar.DISPLAY_SHOW_CUSTOM );
@@ -92,8 +94,15 @@ public class AlvosActivity extends AppCompatActivity implements RespostaConfig
 	protected void onResume()
 		{
 		super.onResume();
+		Globais.atividade = Globais.Atividade.Alvos;
+		Globais.setContext( this );
 		}
-	
+	@Override
+	protected void onPause()
+		{
+		super.onPause();
+		Globais.atividade = Globais.Atividade.nenhuma;
+		}
 	@Override
 	public void Resposta( String resposta )
 		{

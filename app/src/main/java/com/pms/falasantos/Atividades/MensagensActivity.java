@@ -2,6 +2,7 @@ package com.pms.falasantos.Atividades;
 
 import android.content.Intent;
 import android.database.Cursor;
+import android.os.Handler;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -22,6 +23,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.microedition.khronos.opengles.GL;
+
 public class MensagensActivity extends AppCompatActivity
 	{
 	String idreme;
@@ -30,28 +33,47 @@ public class MensagensActivity extends AppCompatActivity
 	
 	//ArrayList<HashMap<String, Object>> oslist = new ArrayList<HashMap<String, Object>>();
 	ArrayList<String> idmsgar = new ArrayList<>();
+	List<String> lstitulo;
 	List<clMensagem> lsmens;
+	ArrayList<String> lsgru;
 	
-	ElsMensAdapter     expadapter;
+	ElsMensAdapter     msgadapter;
 	ExpandableListView expview;
 	HashMap<String, List<clMensagem>> lista = new HashMap<>();
 	
 	int ixnld = -1;               //  índice da primeira mensagem não lida
 	
+	final Handler hdl = new Handler();
+	
+	private final Runnable sendData = new Runnable()
+		{
+		public void run()
+			{
+			if( Globais.temNovidades() )
+				{
+				obterMensg();
+				Globais.semNovidades();
+				}
+			else
+				hdl.postDelayed( sendData, Globais.delayRefresh );
+			}
+		};
+	
 	@Override
 	protected void onPause()
 		{
 		super.onPause();
-		//hdl.removeCallbacks( sendData );
+		Globais.atividade = Globais.Atividade.nenhuma;
+		hdl.removeCallbacks( sendData );
 		}
-	
 	@Override
 	protected void onResume()
 		{
 		super.onResume();
+		Globais.atividade = Globais.Atividade.Mensagens;
+		Globais.setContext( this );
 		Globais.setSemUso();
 		obterMensg();
-		//hdl.postDelayed( sendData, Globais.delayRefresh );
 		}
 	
 	@Override
@@ -76,6 +98,8 @@ public class MensagensActivity extends AppCompatActivity
 		{
 		super.onCreate( savedInstanceState );
 		setContentView( R.layout.activity_mensagens );
+		Globais.atividade = Globais.Atividade.Mensagens;
+		Globais.setContext( this );
 		//
 		Intent mensg = getIntent();
 		idreme = mensg.getStringExtra( "idReme" );
@@ -94,46 +118,62 @@ public class MensagensActivity extends AppCompatActivity
 		//
 		ixnld = -1;
 		obterMensg();
-		//hdl.postDelayed( sendData, 5000 );
 		setupList();
 		Globais.setSemUso();
 		}
 
 	private void setupList()
 		{
-		expview.setOnChildClickListener( new ExpandableListView.OnChildClickListener(){
-		@Override
-		public boolean onChildClick( ExpandableListView parent, View v, int groupPosition, int childPosition, long id )
+		expview.setOnChildClickListener( new ExpandableListView.OnChildClickListener()
 			{
-			if( !lsmens.get( groupPosition ).getFlresp() )
-				return false;
-			Intent mens = new Intent( MensagensActivity.this, MensagemActivity.class );
-			mens.putExtra( "idmens", ""+lsmens.get(groupPosition).idmens );
-			mens.putExtra( "titulo", lsmens.get(groupPosition).titulo );
-			startActivity( mens );
-			return true;
-			}
-		} );
+			@Override
+			public boolean onChildClick( ExpandableListView parent, View v, int groupPosition, int childPosition, long id )
+				{
+				clMensagem clm = (clMensagem) msgadapter.getChild( groupPosition, childPosition );
+//				if( !clm.getFlresp() )
+//					return false;
+				if( clm.daleitu == null )
+					{
+					String sql = "UPDATE mensagens SET msg_dtLeitu='" + Globais.agoraDB() +
+						"', msg_flatua=1 WHERE msg_id=" + clm.idmens;
+					try
+						{
+						Globais.db.execSQL( sql );
+						}
+					catch( Exception e )
+						{
+						Log.i( Globais.apptag, "onGroupExpand UPDATE: " + e.getMessage() );
+						}
+					}
+				Intent mens = new Intent( MensagensActivity.this, MensagemActivity.class );
+				mens.putExtra( "idmens", "" + clm.idmens );
+				mens.putExtra( "titulo", clm.titulo );
+				mens.putExtra( "dtresp", clm.daresp );
+				startActivity( mens );
+				return true;
+				}
+			} );
 		
 		expview.setOnGroupExpandListener( new ExpandableListView.OnGroupExpandListener()
 			{
 			@Override
 			public void onGroupExpand( int ixgr )
 				{
+				/*
 				Log.i( Globais.apptag, "onGroupExpand i=" + ixgr );
 				View view = null;
 				ViewGroup gview = null;
-				int qtch = expadapter.getChildrenCount( ixgr );
+				int qtch = msgadapter.getChildrenCount( ixgr );
 				String agoradb = Globais.agoraDB();
 				String agoraHu = Globais.toHumanDt( agoradb );
 				for( int ixch = 0; ixch < qtch; ixch++ )
 					{
-					clMensagem mens = (clMensagem) expadapter.getChild( ixgr, ixch );
+					clMensagem mens = (clMensagem) msgadapter.getChild( ixgr, ixch );
 					if( mens.daleitu == null )
 						{
 						mens.daleitu = agoraHu;
 						//  atualiza o banco interno
-						String sql = "UPDATE mensagens SET msg_dtLeitu=" + agoradb + ", msg_flatua=1 " +
+						String sql = "UPDATE mensagens SET msg_dtLeitu='" + agoradb + "', msg_flatua=1 " +
 							"WHERE msg_id=" + mens.idmens;
 						try
 							{
@@ -147,6 +187,7 @@ public class MensagensActivity extends AppCompatActivity
 						//  atualiza o siges com a data da leitura da mensagem
 						}
 					}
+				*/
 				}
 			} );
 		}
@@ -178,7 +219,8 @@ public class MensagensActivity extends AppCompatActivity
 		{
 		Cursor curmsg = null;
 		lsmens = new ArrayList<>();
-		List<String> lstitulo = new ArrayList<>();
+		lsgru = new ArrayList<>();
+		lstitulo = new ArrayList<>();
 		ArrayList<Boolean> lido = new ArrayList<>();      //  todas as mensagens lidas
 		Boolean fllida = false;                           //  indica mensagem ja lida
 		int qtold = lista.size();
@@ -191,18 +233,25 @@ public class MensagensActivity extends AppCompatActivity
 				"       when msg.msg_dtleitu is null then '' " +
 				"       else msg.msg_dtleitu " +
 				"       end  as msg_dtleitu, " +
-				"     cor_texto " +
+				"     case  " +
+				"       when msg.msg_dtresp is null then '' " +
+				"       else msg.msg_dtresp " +
+				"       end  as msg_dtresp, " +
+				"     cor_texto, cor.cor_id " +
 				"  from  mensagens msg " +
 				"  left join corpo cor on " +
 				"            cor.msg_id=msg.msg_id " +
 				" where      msg.rem_id=" + idreme +
-				" ORDER BY msg_dtreceb desc";
-		String dtenv = "";
+				" ORDER BY msg_dtreceb desc, cor.cor_id";
+		String dtrec = "";
 		String dtlei = "";
+		String dtres = "";
 		int idmsg;
 		String titant = "";
 
-		String dtenvant = "-";
+		String dtrecant = "-";
+		String titulo = null;
+		String texto;
 		int idmsgant = -1;
 		String corpo = "";
 		try
@@ -212,19 +261,16 @@ public class MensagensActivity extends AppCompatActivity
 			while( curmsg.moveToNext() )
 				{
 				idmsg = curmsg.getInt( curmsg.getColumnIndex( "msg_id" ) );
-				dtenv = curmsg.getString( curmsg.getColumnIndex( "msg_dtreceb" ) );
-				dtlei = curmsg.getString( curmsg.getColumnIndex( "msg_dtleitu" ) );
-				String texto = curmsg.getString( curmsg.getColumnIndex( "cor_texto" ) );
-				String titulo = curmsg.getString( curmsg.getColumnIndex( "msg_titulo" ) );
 				if( idmsg != idmsgant )
 					{
 					if( idmsgant != -1)
 						{
 						clMensagem clmens = new clMensagem
 							(
-							titant,
-							Globais.toHumanDt( dtenv ),
+							titulo,
+							Globais.toHumanDt( dtrec ),
 							Globais.toHumanDt( dtlei ),
+							Globais.toHumanDt( dtres ),
 							corpo,
 							""+idmsgant
 							);
@@ -237,21 +283,25 @@ public class MensagensActivity extends AppCompatActivity
 						}
 					idmsgant = idmsg;
 					corpo = "";
-					titant = titulo;
 					}
+				dtrec = curmsg.getString( curmsg.getColumnIndex( "msg_dtreceb" ) );
+				dtlei = curmsg.getString( curmsg.getColumnIndex( "msg_dtleitu" ) );
+				dtres = curmsg.getString( curmsg.getColumnIndex( "msg_dtresp" ) );
+				titulo = curmsg.getString( curmsg.getColumnIndex( "msg_titulo" ) );
+				texto = curmsg.getString( curmsg.getColumnIndex( "cor_texto" ) );
 				if( corpo.length() > 0 )
 					corpo += "\n";
 				corpo += texto;
-				if( !dtenv.substring( 0, 8 ).equals( dtenvant ) )
+				if( !dtrec.substring( 0, 8 ).equals( dtrecant ) )
 					{
 					if( lsmens.size() > 0 )
 						{
-						lista.put( Globais.toHumanDt( dtenvant ), lsmens );
-						lstitulo.add( Globais.toHumanDt( dtenvant ) );
+						lista.put( Globais.toHumanDt( dtrecant ), lsmens );
+						lstitulo.add( Globais.toHumanDt( dtrecant ) );
 						lido.add( fllida );
 						lsmens = new ArrayList<>();
 						}
-					dtenvant = dtenv.substring( 0, 8 );
+					dtrecant = dtrec.substring( 0, 8 );
 					fllida = false;
 					}
 				if( dtlei != null )
@@ -263,9 +313,10 @@ public class MensagensActivity extends AppCompatActivity
 				{
 				clMensagem clmens = new clMensagem
 					(
-					titant,
-					Globais.toHumanDt( dtenv ),
+					titulo,
+					Globais.toHumanDt( dtrec ),
 					Globais.toHumanDt( dtlei ),
+					Globais.toHumanDt( dtres ),
 					corpo,
 					""+idmsgant
 					);
@@ -288,17 +339,18 @@ public class MensagensActivity extends AppCompatActivity
 			}
 		if( lsmens.size() > 0 )
 			{
-			lista.put( Globais.toHumanDt( dtenvant ), lsmens );
-			lstitulo.add( Globais.toHumanDt( dtenvant ) );
+			lista.put( Globais.toHumanDt( dtrecant ), lsmens );
+			lstitulo.add( Globais.toHumanDt( dtrecant ) );
 			lido.add( fllida );
 			}
-		expadapter = new ElsMensAdapter( this, lstitulo, lista );
-		expview.setAdapter( expadapter );
+		msgadapter = new ElsMensAdapter( this, lstitulo, lista );
+		expview.setAdapter( msgadapter );
 		for( int ix = 0; ix < lido.size(); ix++ )
 			{
 			if( !lido.get( ix ) )
 				expview.expandGroup( ix );
 			}
+		hdl.postDelayed( sendData, Globais.delayRefresh );
 		return true;
 		}
 	}

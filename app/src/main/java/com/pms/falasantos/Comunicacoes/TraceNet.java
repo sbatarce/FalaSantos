@@ -24,13 +24,18 @@ public class TraceNet implements NetworkStateReceiver.NetworkStateReceiverListen
 		ctx.registerReceiver(networkStateReceiver, ifil );
 		}
 	@Override
-	public void networkAvailable() {
-	Log.i( Globais.apptag, "Conectou" );
+	public void networkAvailable()
+		{
+		Log.i( Globais.apptag, "Conectou" );
     // TODO: conectou
-	}
+		
+		}
 	
 	@Override
-	public void networkUnavailable() {
-	Log.i( Globais.apptag, "Desconectou");
+	public void networkUnavailable()
+		{
+		Log.i( Globais.apptag, "Desconectou");
      // TODO: desconectou
-	}	}
+	
+		}
+	}

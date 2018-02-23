@@ -64,6 +64,7 @@ public class ElsMensAdapter extends BaseExpandableListAdapter
 		{
 		return false;
 		}
+	//  chamado para montar o título da lista expansível
 	@Override
 	public View getGroupView( int grpos, boolean expandido, View view, ViewGroup viewGroup )
 		{
@@ -99,6 +100,7 @@ public class ElsMensAdapter extends BaseExpandableListAdapter
 		return view;
 		}
 	
+	//  chamado para montar a parte expansível da lista
 	@Override
 	public View getChildView( int grpos, int chpos, boolean ultimo, View view, ViewGroup viewGroup )
 		{
@@ -109,9 +111,31 @@ public class ElsMensAdapter extends BaseExpandableListAdapter
 			LayoutInflater inflater = (LayoutInflater) ctx.getSystemService( ctx.LAYOUT_INFLATER_SERVICE );
 			view = inflater.inflate( R.layout.mens_item, null );
 			}
+
 		((TextView)view.findViewById( R.id.txTitulo )).setText( clmens.titulo );
-		((TextView)view.findViewById( R.id.txDaEnvio )).setText( clmens.daleitu );
-		((TextView)view.findViewById( R.id.txMensagem )).setText( clmens.mensagem );
+		((TextView)view.findViewById( R.id.txDaEnvio )).setText( clmens.dareceb );
+
+//		if( !clmens.flresp )
+//			{
+//			((TextView)view.findViewById( R.id.txMensagem )).setText( clmens.mensagem );
+//			return view;
+//			}
+			
+		if( clmens.daleitu == null || clmens.daleitu.equals( "" ) )
+			{
+			((TextView)view.findViewById( R.id.txMensagem )).setText( "toque para ler a mensagem" );
+			return view;
+			}
+		String mens = "Leitura:" + clmens.daleitu + " ";
+		if( clmens.daresp == null || clmens.daresp.equals( "" ) )
+			{
+			if( clmens.flresp )
+				mens += "\nA responder...";
+			((TextView)view.findViewById( R.id.txMensagem )).setText( mens );
+			return view;
+			}
+		mens += "\nResposta: " + clmens.daresp;
+		((TextView)view.findViewById( R.id.txMensagem )).setText( mens );
 		return view;
 		}
 	@Override
