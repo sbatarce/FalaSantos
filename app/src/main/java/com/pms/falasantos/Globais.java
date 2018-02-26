@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.database.Cursor;
@@ -102,9 +103,11 @@ public class Globais
 		static public String  dtnas = "";
 		static public String  hoini = "";
 		static public String  hofim = "";
+		static public String  vrsapp = "";
 		static public int     vrsdb = -1;
 		static public boolean flWIFI = false;
-		static public boolean flSilen = false;
+		static public String  senhaconf = "";
+		static public String  questao = "";
 		}
 	
 	//  mensagem com OK & Cancel
@@ -455,7 +458,7 @@ public class Globais
 	
 	private static boolean initDB()
 		{
-		//  cria o registro de configuração
+		//  cria o registro de configuração inicial
 		ContentValues cv = new ContentValues( 15 );
 		String serial = nuSerial();
 		
@@ -467,6 +470,8 @@ public class Globais
 		cv.put( "dis_hoterm", "21:00" );
 		cv.put( "dis_flwifi", 0 );
 		cv.put( "dis_flsilen", 0 );
+		cv.put( "dis_frase", "" );
+		cv.put( "dis_senha", "" );
 		//
 		long ret = -1;
 		try
@@ -525,26 +530,79 @@ public class Globais
 	//  ajusta a versão do DB
 	static boolean ajustaVersao()
 		{
-		if( versaoDB <= config.vrsdb )
-			return true;
+		boolean fltran = false;
 		try
 			{
-			if( versaoDB >= 5 )
+			PackageInfo pkInfo = ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0);
+			String novrs = pkInfo.versionName;
+			int nuvrs = pkInfo.versionCode;
+//			if( versaoDB <= config.vrsdb )
+//				return true;
+			
+			if( versaoDB >= 8 && config.vrsdb < 8 )
+				{
+				fltran = true;
+				db.beginTransaction();
+				String alter = "ALTER TABLE dispositivo RENAME TO dispositivoold";
+				db.execSQL( alter );
+				String[] tables = resources.getStringArray( R.array.tabelas );
+				for( int ix = 0; ix < tables.length; ix++ )
+					{
+					String[] partes = tables[ix].split( "\\|" );
+					if( !partes[0].equals( "dispositivo" ))
+						continue;
+					String script = "CREATE TABLE IF NOT EXISTS " + partes[0] + "(" +
+						partes[1] + ");";
+					db.execSQL( script );
+					break;
+					}
+				//  copia os dados iguais o antigo para o novo
+				alter = "INSERT INTO dispositivo( dis_id, dis_nuserie, dis_fbtoken, " +
+					"dis_vrsapp, dis_hoinic, dis_hoterm, dis_flwifi, dis_flsilen, dis_flatua, " +
+					"dis_flpenden, dis_frase, dis_senha ) " +
+					"SELECT dis_id, dis_nuserie, dis_fbtoken, " +
+					"dis_vrsapp, dis_hoinic, dis_hoterm, dis_flwifi, dis_flsilen, dis_flatua, " +
+					"dis_flpenden, dis_frase, dis_senha " +
+					"FROM dispositivoold ";
+				db.execSQL( alter );
+				//  altera o dado novo
+				alter = "UPDATE dispositivo SET dis_vrsapp='" + novrs + "' dis_vsrdb=" + nuvrs;
+				db.execSQL( alter );
+				//
+				fltran = false;
+				db.setTransactionSuccessful();
+				}
+			
+			if( versaoDB >= 6 && config.vrsdb < 6 )
 				{
 				String alter =  "ALTER TABLE dispositivo ADD COLUMN " +
-												"dis_flpenden INTEGER DEFAULT 0";
+					"dis_frase TEXT";
+				db.execSQL( alter );
+				alter =  "ALTER TABLE dispositivo ADD COLUMN " +
+					"dis_senha TEXT";
+				db.execSQL( alter );
+				String sql = "UPDATE DISPOSITIVO SET dis_frase='', dis_senha=''";
+				db.execSQL( sql );
+				}
+			if( versaoDB >= 5 && config.vrsdb < 5 )
+				{
+				String alter =  "ALTER TABLE dispositivo ADD COLUMN " +
+					"dis_flpenden INTEGER DEFAULT 0";
 				db.execSQL( alter );
 				String sql = "UPDATE DISPOSITIVO SET dis_vrsdb=1, dis_vrsapp='1.0.0'";
 				db.execSQL( sql );
 				}
 			String sql = "UPDATE DISPOSITIVO SET " +
-				"dis_vrsdb=" + versaoDB + ", " +
-				"dis_vrsapp='" + versaoApp + "'";
+				"dis_vrsdb=" + nuvrs + ", " +
+				"dis_vrsapp='" + novrs + "'";
 			db.execSQL( sql );
-			config.vrsdb = versaoDB;
+			config.vrsapp = novrs;
+			config.vrsdb = nuvrs;
 			}
 		catch( Exception exc )
 			{
+			if( fltran )
+				db.endTransaction();
 			Log.i( apptag, "ajustaVersao(1) " + exc.getMessage() );
 			return false;
 			}
@@ -556,7 +614,8 @@ public class Globais
 		{
 		try
 			{
-			String sql = "SELECT dis_id, dis_nuserie, dis_vrsdb, dis_hoinic, dis_hoterm, dis_flwifi, dis_flsilen " +
+			String sql = "SELECT dis_id, dis_nuserie, dis_vrsdb, dis_hoinic, dis_hoterm, " +
+				"dis_flwifi, dis_flsilen, dis_frase, dis_senha " +
 				"FROM dispositivo";
 			Cursor c = db.rawQuery( sql, null );
 			if( c.getCount() < 1 )
@@ -567,7 +626,6 @@ public class Globais
 				config.hoini = "";
 				config.hofim = "";
 				config.flWIFI = true;
-				config.flSilen = false;
 				}
 			else
 				{
@@ -582,10 +640,8 @@ public class Globais
 						config.flWIFI = true;
 					else
 						config.flWIFI = false;
-					if( c.getInt( c.getColumnIndex( "dis_flsilen" ) ) == 1 )
-						config.flSilen = true;
-					else
-						config.flSilen = false;
+					config.questao = c.getString( c.getColumnIndex( "dis_frase" ) );
+					config.senhaconf = c.getString( c.getColumnIndex( "dis_senha" ) );
 					}
 				else
 					return false;

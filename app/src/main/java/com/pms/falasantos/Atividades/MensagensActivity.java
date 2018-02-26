@@ -159,35 +159,6 @@ public class MensagensActivity extends AppCompatActivity
 			@Override
 			public void onGroupExpand( int ixgr )
 				{
-				/*
-				Log.i( Globais.apptag, "onGroupExpand i=" + ixgr );
-				View view = null;
-				ViewGroup gview = null;
-				int qtch = msgadapter.getChildrenCount( ixgr );
-				String agoradb = Globais.agoraDB();
-				String agoraHu = Globais.toHumanDt( agoradb );
-				for( int ixch = 0; ixch < qtch; ixch++ )
-					{
-					clMensagem mens = (clMensagem) msgadapter.getChild( ixgr, ixch );
-					if( mens.daleitu == null )
-						{
-						mens.daleitu = agoraHu;
-						//  atualiza o banco interno
-						String sql = "UPDATE mensagens SET msg_dtLeitu='" + agoradb + "', msg_flatua=1 " +
-							"WHERE msg_id=" + mens.idmens;
-						try
-							{
-							Globais.db.execSQL( sql );
-							}
-						catch( Exception e )
-							{
-							Log.i( Globais.apptag, "onGroupExpand UPDATE: " + e.getMessage() );
-							continue;
-							}
-						//  atualiza o siges com a data da leitura da mensagem
-						}
-					}
-				*/
 				}
 			} );
 		}
@@ -247,7 +218,6 @@ public class MensagensActivity extends AppCompatActivity
 		String dtlei = "";
 		String dtres = "";
 		int idmsg;
-		String titant = "";
 
 		String dtrecant = "-";
 		String titulo = null;

@@ -12,18 +12,8 @@
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:text="Escolha uma das opções:"
-      android:textSize="24sp"
+      android:textSize="20dp"
       android:textStyle="bold"/>
-
-  <ImageButton
-      android:id="@+id/btInforma"
-      android:layout_width="32dp"
-      android:layout_height="32dp"
-      android:layout_alignParentEnd="true"
-      android:adjustViewBounds="true"
-      android:background="@drawable/informa"
-      android:clickable="true"
-      android:onClick="onClick"/>
 
   <!-- grupo exclusivo funcionário/munícipe -->
   <RadioGroup
@@ -47,7 +37,7 @@
 
   </RadioGroup>
 
-  <!-- layout contendo a parte comum: horários, uso de banda/wifi silenciar -->
+  <!-- layout contendo a parte comum: horários, uso de banda/wifi confidencialidade -->
   <LinearLayout
       android:id="@+id/llComum"
       android:layout_width="match_parent"
@@ -61,37 +51,32 @@
         android:orientation="horizontal">
 
       <TextView
-          android:layout_width="100dp"
+          android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:text="Horário Inicial"/>
+          android:text="Horário de "/>
 
       <EditText
           android:id="@+id/txHrInic"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
           android:inputType="time"
-          android:minWidth="100dp"
-          android:text="08:00"/>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+          android:minWidth="50dp"
+          android:text="08:00"
+          android:textSize="14sp"/>
 
       <TextView
-          android:layout_width="100dp"
+          android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:text="Horário final"/>
+          android:text=" até "/>
 
       <EditText
           android:id="@+id/txHrFinal"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
           android:inputType="time"
-          android:minWidth="100dp"
-          android:text="21:00"/>
+          android:minWidth="50dp"
+          android:text="21:00"
+          android:textSize="14sp"/>
 
     </LinearLayout>
 
@@ -99,13 +84,8 @@
         android:id="@+id/ckWIFI"
         android:layout_width="wrap_content"
         android:layout_height="20dp"
+        android:textSize="14sp"
         android:text="Não usar a Banda do Celular (Só WIFI)"/>
-
-    <CheckBox
-        android:id="@+id/ckSilen"
-        android:layout_width="wrap_content"
-        android:layout_height="20dp"
-        android:text="Sem sons de notificação"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -113,16 +93,17 @@
         android:orientation="horizontal">
 
       <TextView
-          android:layout_width="100dp"
+          android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:text="Questão Senha"/>
+          android:text="Questão: "/>
 
       <EditText
           android:id="@+id/txQuestao"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:minWidth="100dp"
-          android:text="Com quantos paus se faz uma canôa"/>
+          android:minWidth="150dp"
+          android:text=""
+          android:textSize="14sp"/>
 
     </LinearLayout>
 
@@ -132,17 +113,18 @@
         android:orientation="horizontal">
 
       <TextView
-          android:layout_width="100dp"
+          android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:text="Senha"/>
+          android:text="Senha: "/>
 
       <EditText
           android:id="@+id/txSenhaConf"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:inputType="textVisiblePassword"
+          android:inputType="textPassword"
           android:minWidth="100dp"
-          android:text="floquinho"/>
+          android:textSize="14sp"
+          android:text=""/>
 
     </LinearLayout>
 
@@ -162,15 +144,16 @@
         android:orientation="horizontal">
 
       <TextView
-          android:layout_width="100dp"
+          android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:text="SSHD"/>
+          android:text="SSHD: "/>
 
       <EditText
           android:id="@+id/txSSHD"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
           android:inputType="textVisiblePassword"
+          android:textSize="14sp"
           android:minWidth="150dp"/>
 
     </LinearLayout>
@@ -181,15 +164,16 @@
         android:orientation="horizontal">
 
       <TextView
-          android:layout_width="100dp"
+          android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:text="Senha"/>
+          android:text="Senha: "/>
 
       <EditText
           android:id="@+id/txSenha"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
           android:inputType="textPassword"
+          android:textSize="14sp"
           android:minWidth="150dp"/>
 
     </LinearLayout>
@@ -211,9 +195,9 @@
         android:orientation="horizontal">
 
       <TextView
-          android:layout_width="100dp"
+          android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:text="Nome"/>
+          android:text="Nome: "/>
 
       <EditText
           android:id="@+id/txNome"
@@ -230,9 +214,9 @@
         android:orientation="horizontal">
 
       <TextView
-          android:layout_width="100dp"
+          android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:text="Nascimento"/>
+          android:text="Nascimento: "/>
 
       <EditText
           android:id="@+id/txDtNasc"
@@ -249,9 +233,9 @@
         android:orientation="horizontal">
 
       <TextView
-          android:layout_width="100dp"
+          android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:text="CPF"/>
+          android:text="CPF: "/>
 
       <EditText
           android:id="@+id/txCPF"

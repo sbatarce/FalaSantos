@@ -265,7 +265,6 @@ public class processFBMens implements RespostaConfig
 						//  insere a nova mensagem
 						//  afazer => precisa iniciar uma transação aqui?
 						cv = new ContentValues( 10 );
-						cv.put( "msg_id", idmsg );
 						cv.put( "rem_id", ixrem );
 						cv.put( "msg_msaid", idmsa );
 						cv.put( "msg_titulo", titulo );
@@ -275,7 +274,7 @@ public class processFBMens implements RespostaConfig
 						cv.put( "msg_dtretorno", "" );
 						cv.put( "msg_dtdelete", "" );
 						cv.put( "msg_flatua", 1 );
-						long res = Globais.db.insert( "mensagens", null, cv );
+						idmsg = (int) Globais.db.insertOrThrow( "mensagens", null, cv );
 						//  obtem os eventuais corpos da mensagem
 						if( mensg.has( "corpos") )
 							{
@@ -300,7 +299,7 @@ public class processFBMens implements RespostaConfig
 								cv.put( "cor_stresposta", respo );
 								cv.put( "cor_stobrigatoria", obrig );
 								cv.put( "cor_flatua", 0 );
-								res = Globais.db.insert( "corpo", null, cv );
+								Globais.db.insertOrThrow( "corpo", null, cv );
 								//  verifica opções do corpo
 								if( corpo.has("opcoes") )
 									{
@@ -320,7 +319,7 @@ public class processFBMens implements RespostaConfig
 										cv.put( "opt_texto", texto );
 										cv.put( "opt_flchecked", 0 );
 										cv.put( "opt_flatua", 0 );
-										res = Globais.db.insert( "opcoes", null, cv );
+										Globais.db.insertOrThrow( "opcoes", null, cv );
 										}     //  for opcoes
 									}       //  corpo tem opcoes
 								}         //  for corpos

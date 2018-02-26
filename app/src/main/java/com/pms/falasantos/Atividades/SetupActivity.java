@@ -36,7 +36,7 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 	RadioGroup rbgr;
 	
 	String cpf, dtnas, nome,
-		sshd, senha;
+		sshd, senha, senhaconf, questao;
 	int desid, iddis;
 	
 	private enum State
@@ -51,8 +51,8 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 	State state = State.nenhum;
 	
 	boolean flokc = false,
-		flwifi      = false,
-		flsile      = false;
+		flwifi      = false;
+	
 	
 	RequestHttp req = null;
 	private ProgressDialog progress;
@@ -83,11 +83,12 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 			{
 			//  ja fez o setup => deve ser alteração
 			Globais.obterConfig();
-			((LinearLayout) findViewById( R.id.llComum )).setVisibility( View.VISIBLE );
+			(findViewById( R.id.llComum )).setVisibility( View.VISIBLE );
 			((EditText) findViewById( R.id.txHrInic )).setText( Globais.config.hoini );
 			((EditText) findViewById( R.id.txHrFinal )).setText( Globais.config.hofim );
 			((CheckBox) findViewById( R.id.ckWIFI )).setChecked( Globais.config.flWIFI );
-			((CheckBox) findViewById( R.id.ckSilen )).setChecked( Globais.config.flSilen );
+			((EditText) findViewById( R.id.txQuestao )).setText( Globais.config.questao );
+			((EditText) findViewById( R.id.txSenhaConf )).setText( Globais.config.senhaconf );
 			
 			((EditText) findViewById( R.id.txNome )).setText( Globais.config.nome );
 			((EditText) findViewById( R.id.txDtNasc )).setText( Globais.config.dtnas );
@@ -115,6 +116,8 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 			{
 			((RadioButton) findViewById( R.id.rbFunc )).setChecked( false );
 			((RadioButton) findViewById( R.id.rbMunic )).setChecked( true );
+			((EditText) findViewById( R.id.txQuestao )).setText( "" );
+			((EditText) findViewById( R.id.txSenhaConf )).setText( "" );
 			
 			((EditText) findViewById( R.id.txNome )).setText( "" );
 			((EditText) findViewById( R.id.txDtNasc )).setText( "" );
@@ -178,9 +181,6 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 	@Override
 	public void onClick( View v )
 		{
-		if( v == findViewById( R.id.btInforma ) )
-			{
-			}
 		if( v == findViewById( R.id.btSetupCancel ) )
 			{
 			if( !Globais.fezSetup() )
@@ -214,10 +214,19 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 				flwifi = true;
 			else
 				flwifi = false;
-			if( ((CheckBox) findViewById( R.id.ckSilen )).isChecked() )
-				flsile = true;
-			else
-				flsile = false;
+			
+			questao = ((EditText) findViewById( R.id.txQuestao )).getText().toString();
+			senhaconf = ((EditText) findViewById( R.id.txSenhaConf )).getText().toString();
+			if( (questao == null && senhaconf != null) ||
+				(questao != null && senhaconf == null) )
+				{
+				String msg = "Os campos \"Questão\" e \"Senha\" devem ser fornecidos ou omitidos juntos, isto é, " +
+					"preencha os dois ou omita os dois.";
+				Globais.Alerta( this, "Por favor, corrija.", msg );
+				return;
+				}
+
+			//  funcionários ou munícipes
 			if( ((RadioButton) findViewById( R.id.rbFunc )).isChecked() )
 				{
 				//  de funcionario
@@ -472,11 +481,9 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 						cv.put( "dis_flwifi", 1 );
 					else
 						cv.put( "dis_flwifi", 0 );
-					if( flsile )
-						cv.put( "dis_flsilen", 1 );
-					else
-						cv.put( "dis_flsilen", 0 );
-					
+					cv.put( "dis_flsilen", 0 );
+					cv.put( "dis_frase", questao );
+					cv.put( "dis_senha", senhaconf );
 					try
 						{
 						int ret = Globais.db.update( "dispositivo", cv, null, null );

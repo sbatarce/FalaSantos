@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <integer name="dbvers">5</integer>
-  <integer name="appvers">100</integer>
+  <integer name="dbvers">8</integer>
+  <integer name="appvers">102</integer>
   <!--
    >  Os campos xxx_flatua indicam que o segmento sofreu alteração e portanto
       deverão ser enviados ao servidor assim que houver condições
@@ -13,13 +13,15 @@
       dis_nuserie   TEXT,
       dis_fbtoken   TEXT,
       dis_vrsdb     INTEGER,
-      dis_vrsapp    INTEGER,
+      dis_vrsapp    TEXT,
       dis_hoinic    TEXT,
       dis_hoterm    TEXT,
       dis_flwifi    INTEGER DEFAULT 0,
       dis_flsilen   INTEGER DEFAULT 0,
       dis_flatua    INTEGER DEFAULT 0,
-      dis_flpenden  INTEGER DEFAULT 0
+      dis_flpenden  INTEGER DEFAULT 0,
+      dis_frase     TEXT,
+      dis_senha     TEXT
     </item>
 
     <item>destinatario|
