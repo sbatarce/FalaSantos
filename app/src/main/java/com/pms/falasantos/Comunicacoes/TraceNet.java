@@ -18,6 +18,7 @@ public class TraceNet implements NetworkStateReceiver.NetworkStateReceiverListen
 		{
 		this.ctx = ctx;
 		networkStateReceiver = new NetworkStateReceiver();
+		Log.d( Globais.apptag, "NetworkStateReceiver:" + networkStateReceiver );
 		networkStateReceiver.addListener(this);
 		IntentFilter ifil = new IntentFilter( android.net.ConnectivityManager.CONNECTIVITY_ACTION);
 		ifil.addAction( WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION );

@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
@@ -40,6 +41,28 @@ public class MainActivity extends AppCompatActivity
 	TraceNet trace;
 	
 	boolean flfim = false;
+	private long delay = 5000;
+	
+	final Handler hdl = new Handler();
+	
+	private final Runnable atualiza = new Runnable()
+		{
+		public void run()
+			{
+			try
+				{
+				if( Globais.flatua )
+					obterMensg();
+				else
+					hdl.postDelayed( atualiza, delay );
+					
+				}
+			catch( Exception e )
+				{
+				e.printStackTrace();
+				}
+			}
+		};
 	
 	@Override
 	protected void onCreate( Bundle savedInstanceState )
@@ -84,7 +107,7 @@ public class MainActivity extends AppCompatActivity
 							}
 						break;
 					}
-				Globais.pFBMens.obterMens( true );
+				Globais.pFBMens.obterMens( false );
 				}
 			}
 		//  prepara a lista de alvos
@@ -139,14 +162,17 @@ public class MainActivity extends AppCompatActivity
 			return;
 			}
 		//
-		if( !Globais.AbreDB() )
+		if( !Globais.dbOK )
 			{
-			Globais.RemoveDB();
-			String msg = "O FalaSantos será encerrado.  " +
-				"Por favor, reinicie-o para corrigir os problemas detectados.";
-			Globais.Alerta( this, "Banco de dados corrompido", msg );
-			flfim = true;
-			return;
+			if( !Globais.AbreDB() )
+				{
+				Globais.RemoveDB();
+				String msg = "O FalaSantos será encerrado.  " +
+					"Por favor, reinicie-o para corrigir os problemas detectados.";
+				Globais.Alerta( this, "Banco de dados corrompido", msg );
+				flfim = true;
+				return;
+				}
 			}
 		//  verifica se fez setup
 		if( Globais.fezSetup() )
@@ -162,6 +188,7 @@ public class MainActivity extends AppCompatActivity
 	protected void onPause()
 		{
 		super.onPause();
+		hdl.removeCallbacks( atualiza );
 		Globais.atividade =  Globais.Atividade.nenhuma;
 		}
 	//
@@ -238,13 +265,14 @@ public class MainActivity extends AppCompatActivity
 				rem = c.getString( c.getColumnIndex( "norem" ) );
 				idr = c.getInt( c.getColumnIndex( "idrem" ) );
 				String dtlei = c.getString( c.getColumnIndex( "dtlei" ) );
+				//  tratamento do remetente
 				if( rem == null )
 					{
 					rem = "Não há mensagens ainda";
 					}
-				if( !rem.equals( remant ) )
+				if( idr != idrant )
 					{
-					if( !remant.equals( "-" ) )
+					if( idrant != -1 )
 						lsrems.add( new clRems( idrant, remant, qtRemALer, qtRemTot ) );
 					qtAlvALer += qtRemALer;
 					qtAlvTot += qtRemTot;
@@ -253,6 +281,7 @@ public class MainActivity extends AppCompatActivity
 					remant = rem;
 					idrant = idr;
 					}
+				//  tratamento do alvo
 				if( !alvo.equals( alvant ) )      //  novo area/alvo
 					{
 					if( !alvant.equals( "-" ) )
@@ -260,18 +289,18 @@ public class MainActivity extends AppCompatActivity
 						clAlvs clalv = new clAlvs( alvant, qtAlvALer, qtAlvTot );
 						lista.put( clalv, lsrems );
 						lsalvos.add( clalv );
-						lsrems = new ArrayList<>();
 						}
-
+					lsrems = new ArrayList<>();
+					//idrant = -1;
 					alvant = alvo;
 					qtAlvALer = 0;
 					qtAlvTot = 0;
 					}
-				if( dtlei.equals( "-" ) && !rem.contains( "Não há mens" ) )
+				if( (dtlei.equals( "-" ) || dtlei.equals( "" )) && !rem.contains( "Não há mens" ) )
 					qtRemALer++;
 				qtRemTot++;
 				}
-			if( !remant.equals( "-" ) )
+			if( idrant != -1 )
 				{
 				lsrems.add( new clRems( idrant, remant, qtRemALer, qtRemTot ) );
 				qtAlvALer += qtRemALer;
@@ -287,10 +316,13 @@ public class MainActivity extends AppCompatActivity
 			{
 			Log.i( Globais.apptag, "obterMensg: " + e.getMessage() );
 			c.close();
+			hdl.postDelayed( atualiza, delay );
 			return false;
 			}
 		expadapter = new ElsAlvosAdapter( this, lsalvos, lista );
 		elsAlvos.setAdapter( expadapter );
+		Globais.flatua = false;
+		hdl.postDelayed( atualiza, delay );
 		return true;
 		}
 	}

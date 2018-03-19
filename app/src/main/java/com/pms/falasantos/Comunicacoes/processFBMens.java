@@ -32,12 +32,18 @@ public class processFBMens implements RespostaConfig
 	private boolean flprog = false;
 	List<Integer> lsmsgs = null;          //  lista de ids de mensagens respondidas
 	
+	String lsrec = "";        //  lista de IDs recebidos
+	String lslei = "";        //  lista de IDs lidos
+	String lsres = "";        //  lista de IDs respondidos
+	String lsdel = "";        //  lista de IDs deletados
+	
 	private enum State
 		{
 		nenhum,
 		obtmens,
-		atuamsa,
-		atuaresp
+		atuamsas,
+		atuaresp,
+		atuauatua
 		}
 	
 	private State state = State.nenhum;
@@ -70,21 +76,139 @@ public class processFBMens implements RespostaConfig
 		return true;
 		}
 	
-	public boolean atuaMSAs( String lista )
+	//  atualiza todos os MSA(s) das mensagens pendentes de atualização
+	public void atuaMSAs()
 		{
-		if( !Globais.isConnected() )
-			return false;
-		state = State.atuamsa;
+		String msaid = "";
+		String uatua = "";
+		String receb = "";
+		String leitu = "";
+		String respo = "";
+		String delet = "";
+
+		String sql = "select msg_msaid, msg_dtuatua, msg_dtreceb, msg_dtleitu, msg_dtresp, msg_dtdelete " +
+			" from mensagens " +
+			" where msg_dtreceb > msg_dtuatua OR " +
+			"   msg_dtleitu > msg_dtuatua OR " +
+			"   msg_dtresp > msg_dtuatua OR " +
+			"   msg_dtdelete > msg_dtuatua";
+		
+		Cursor cur = Globais.db.rawQuery( sql, null );
+		while( cur.moveToNext() )
+			{
+			msaid = cur.getString( cur.getColumnIndex( "msg_msaid" ) );
+			uatua = cur.getString( cur.getColumnIndex( "msg_dtuatua" ) );
+			receb = cur.getString( cur.getColumnIndex( "msg_dtreceb" ) );
+			leitu = cur.getString( cur.getColumnIndex( "msg_dtleitu" ) );
+			respo = cur.getString( cur.getColumnIndex( "msg_dtresp" ) );
+			delet = cur.getString( cur.getColumnIndex( "msg_dtdelete" ) );
+			
+			if( receb.compareTo( uatua ) > 0 )
+				{
+				if( !lsrec.equals( "" ) )
+					lsrec += ",";
+				lsrec += msaid;
+				}
+			if( leitu.compareTo( uatua ) > 0 )
+				{
+				if( !lslei.equals( "" ) )
+					lslei += ",";
+				lslei += msaid;
+				}
+			if( respo.compareTo( uatua ) > 0 )
+				{
+				if( !lsres.equals( "" ) )
+					lsres += ",";
+				lsres += msaid;
+				}
+			if( delet.compareTo( uatua ) > 0 )
+				{
+				if( !lsdel.equals( "" ) )
+					lsdel += ",";
+				lsdel += msaid;
+				}
+			}
+		cur.close();
+		
+		if( lsdel.equals( "" ) && lslei.equals( "" ) &&
+				lsrec.equals( "" ) && lsres.equals( "" ) )
+			{
+			return;
+			}
+		String body = "[";
+		if( !lsdel.equals( "" ) )
+			{
+			if( !body.equals( "[" ) )
+				body += ",";
+			body += "{\"lista\": \"" + lsdel + "\"," +
+				"\"cmp\": \"D\"," +
+				"\"datahora\": \"" + delet + "\"}";
+			}
+		if( !lslei.equals( "" ) )
+			{
+			if( !body.equals( "[" ) )
+				body += ",";
+			body += "{\"lista\": \"" + lslei + "\"," +
+				"\"cmp\": \"L\"," +
+				"\"datahora\": \"" + leitu + "\"}";
+			}
+		if( !lsrec.equals( "" ) )
+			{
+			if( !body.equals( "[" ) )
+				body += ",";
+			body += "{\"lista\": \"" + lsrec + "\"," +
+				"\"cmp\": \"R\"," +
+				"\"datahora\": \"" + receb + "\"}";
+			}
+		if( !lsres.equals( "" ) )
+			{
+			if( !body.equals( "[" ) )
+				body += ",";
+			body += "{\"lista\": \"" + lsres + "\"," +
+				"\"cmp\": \"E\"," +
+				"\"datahora\": \"" + respo + "\"}";
+			}
+		body += "]";
+		state = State.atuamsas;
 		req = new RequestHttp( ctx );
-		String url = Globais.dominio + "/partes/funcoes.php?func=atuamsa";
-		url += "&lista=" + URLEncoder.encode( lista );
-		url += "&cmp=" + URLEncoder.encode( "R" );
-		url += "&data=" + URLEncoder.encode( Globais.agoraDB() );
+		req.setBody( body );
+		String url = Globais.dominio + "/services/SRV_ATUAMSAS.php";
 		req.delegate = this;
 		req.execute( url );
-		return true;
+		return;
 		}
 	
+	public void atuauatua()
+		{
+		String lsin = "";
+		if( !lsdel.equals( "" ) )
+			lsin += lsin;
+		if( !lslei.equals( "" ) )
+			{
+			if( !lsin.equals( "" ) )
+				lsin += ",";
+			lsin += lslei;
+			}
+		if( !lsrec.equals( "" ) )
+			{
+			if( !lsin.equals( "" ) )
+				lsin += ",";
+			lsin += lsrec;
+			}
+		if( !lsres.equals( "" ) )
+			{
+			if( !lsin.equals( "" ) )
+				lsin += ",";
+			lsin += lsres;
+			}
+		String where = "msg_msaid in(" + lsin + ")";
+		ContentValues cv = new ContentValues( 5 );
+		cv.put( "msg_dtuatua", Globais.agoraDB());
+		int qtd = Globais.db.update( "mensagens", cv, where, null );
+		return;
+		}
+	
+	//  monta todas as respostas necessárias e manda ao servidor
 	private String montaResposta()
 		{
 		lsmsgs = new ArrayList<>();
@@ -93,8 +217,9 @@ public class processFBMens implements RespostaConfig
 		JSONArray opts = null;
 		try
 			{
+			//  seleciona todas as mensagens com respostas ainda não enviadas
 			String sql = "SELECT msg.msg_id, msg.msg_dtresp, msg.msg_msaid, " +
-				"cor.cor_id, cor.cor_ticorpo, cor.cor_resposta, opt.opt_id " +
+				"cor.cor_idcor, cor.cor_ticorpo, cor.cor_resposta, opt.opt_idopt " +
 				"FROM        mensagens msg " +
 				"INNER JOIN  corpo cor ON " +
 				"            cor.msg_id=msg.msg_id AND " +
@@ -102,8 +227,9 @@ public class processFBMens implements RespostaConfig
 				"LEFT JOIN   opcoes opt ON " +
 				"            opt.cor_id=cor.cor_id AND " +
 				"            opt.opt_flchecked=1 " +
-				"WHERE  msg.msg_dtresp is not null AND msg.msg_dtresp<>''" +
-				"  AND  (msg.msg_dtretorno is null OR msg.msg_dtretorno='')";
+				"WHERE  msg.msg_dtresp<>'' " +
+				"  AND  (msg.msg_dtuatua='' OR msg.msg_dtresp > msg.msg_dtuatua)" +
+				"  ORDER BY msg.msg_id";
 
 			Cursor cur = Globais.db.rawQuery( sql, null );
 			int msgant = -1;
@@ -118,7 +244,7 @@ public class processFBMens implements RespostaConfig
 					lsmsgs.add( msgid );
 					msgant = msgid;
 					}
-				int corid = cur.getInt( cur.getColumnIndex( "cor_id" ) );
+				int corid = cur.getInt( cur.getColumnIndex( "cor_idcor" ) );
 				if( corant != corid )
 					{
 					corant = corid;
@@ -158,8 +284,8 @@ public class processFBMens implements RespostaConfig
 				}
 			if( msgant == -1 )
 				return null;
-			if( corpo != null )
-				jres.put( corpo );
+			//if( corpo != null )
+			//	jres.put( corpo );
 			}
 		catch( JSONException jexc )
 			{
@@ -174,14 +300,17 @@ public class processFBMens implements RespostaConfig
 		return jres.toString();
 		}
 	
+	//
 	public boolean mandaRespostas()
 		{
-		String jresp = montaResposta();
-		if( jresp == null )
-			return true;
-		
 		if( !Globais.isConnected() )
 			return false;
+		String jresp = montaResposta();
+		if( jresp == null )
+			{
+			atuaMSAs();
+			return true;
+			}
 		state = State.atuaresp;
 		req = new RequestHttp( ctx );
 		String url = Globais.dominio + "/services/SRV_RecRespostas.php";
@@ -194,6 +323,7 @@ public class processFBMens implements RespostaConfig
 	@Override
 	public void Resposta( String resposta )
 		{
+		String lista = "";
 		if( flprog )
 			{
 			progress.dismiss();
@@ -232,7 +362,6 @@ public class processFBMens implements RespostaConfig
 			switch( state )
 				{
 				case obtmens:
-					String lista = "";
 					if( !jobj.has( "quantidade" ) )
 						{
 						Globais.Alerta( ctx, "Resposta do servidor com erro",
@@ -271,9 +400,8 @@ public class processFBMens implements RespostaConfig
 						cv.put( "msg_dtreceb", Globais.agoraDB() );
 						cv.put( "msg_dtleitu", "" );
 						cv.put( "msg_dtresp", "" );
-						cv.put( "msg_dtretorno", "" );
+						cv.put( "msg_dtuatua", "" );
 						cv.put( "msg_dtdelete", "" );
-						cv.put( "msg_flatua", 1 );
 						idmsg = (int) Globais.db.insertOrThrow( "mensagens", null, cv );
 						//  obtem os eventuais corpos da mensagem
 						if( mensg.has( "corpos") )
@@ -283,7 +411,7 @@ public class processFBMens implements RespostaConfig
 							for( int ixcor=0; ixcor<qtcor; ixcor++ )
 								{
 								JSONObject corpo = corpos.getJSONObject( ixcor );
-								int idcor = corpo.getInt( "idcor" );
+								long idcor = corpo.getInt( "idcor" );
 								int idtic = corpo.getInt( "idtic" );
 								String codigo = corpo.getString( "corpo" );
 								String texto = corpo.getString( "texto" );
@@ -291,15 +419,14 @@ public class processFBMens implements RespostaConfig
 								int obrig = corpo.getInt( "obrigatoria" );
 								//  insere o corpo na mensagem
 								cv = new ContentValues( 10 );
-								cv.put( "cor_id", idcor );
+								cv.put( "cor_idcor", idcor );
 								cv.put( "msg_id", idmsg );
 								cv.put( "cor_ticorpo", idtic );
 								cv.put( "cor_corpo", codigo );
 								cv.put( "cor_texto", texto );
 								cv.put( "cor_stresposta", respo );
 								cv.put( "cor_stobrigatoria", obrig );
-								cv.put( "cor_flatua", 0 );
-								Globais.db.insertOrThrow( "corpo", null, cv );
+								idcor = Globais.db.insertOrThrow( "corpo", null, cv );
 								//  verifica opções do corpo
 								if( corpo.has("opcoes") )
 									{
@@ -313,12 +440,11 @@ public class processFBMens implements RespostaConfig
 										texto = opcao.getString( "texto" );
 										//  insere a opção
 										cv = new ContentValues( 10 );
-										cv.put( "opt_id", idopt );
+										cv.put( "opt_idopt", idopt );
 										cv.put( "cor_id", idcor );
 										cv.put( "opt_codigo", codigo );
 										cv.put( "opt_texto", texto );
 										cv.put( "opt_flchecked", 0 );
-										cv.put( "opt_flatua", 0 );
 										Globais.db.insertOrThrow( "opcoes", null, cv );
 										}     //  for opcoes
 									}       //  corpo tem opcoes
@@ -326,13 +452,14 @@ public class processFBMens implements RespostaConfig
 							}           //  mensagem tem corpos
 						}             //  for mensagens
 					//  atualiza os MSA's
-					atuaMSAs( lista );
 					Globais.comNovidades();
+					mandaRespostas();
 					break;
-				
-				case atuamsa:
+				//  atualizou os msas com RECEBIDO
+				case atuamsas:
+					atuauatua();
 					break;
-					
+				//  atualiza respostas
 				case atuaresp:
 					String in = "";
 					for( int msgid: lsmsgs )
@@ -342,9 +469,10 @@ public class processFBMens implements RespostaConfig
 						else
 							in += ", " + msgid;
 						}
-					String sql = "UPDATE mensagens SET msg_dtretorno='" + Globais.agoraDB() +
+					String sql = "UPDATE mensagens SET msg_dtuatua='" + Globais.agoraDB() +
 						"' WHERE msg_id IN( " + in + " )";
 					Globais.db.execSQL( sql );
+					atuaMSAs();
 					break;
 				}
 			}

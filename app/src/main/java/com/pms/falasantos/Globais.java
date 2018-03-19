@@ -18,6 +18,7 @@ import android.view.Menu;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.pms.falasantos.Atividades.AlvosActivity;
+import com.pms.falasantos.Atividades.MainActivity;
 import com.pms.falasantos.Atividades.SetupActivity;
 import com.pms.falasantos.Comunicacoes.processFBMens;
 import com.pms.falasantos.Outras.clAlvo;
@@ -60,9 +61,11 @@ public class Globais
 	static private Boolean semaf = false;
 	
 	static public long delayRefresh = 1800000;
+	static public boolean flatua = false;
 	
 	static public  Context   ctx       = null;
 	static public  processFBMens pFBMens;
+	static public  MainActivity pMain;
 	static private Resources resources = null;
 	static private String    nodb      = "falasantos.db";
 	static private String    DBfile    = "";        //  nome do db com path
@@ -353,7 +356,7 @@ public class Globais
 	static public long ixRemet( String sshd, long alv, String nome )
 		{
 		String sql =  "SELECT rem_id FROM remetentes WHERE alv_id=" + alv +
-									" AND rem_sshd='" + sshd + "'";
+									" AND rem_nopessoa='" + nome + "'";
 		long res = -1;
 		Cursor c = db.rawQuery( sql, null );
 		if( c.moveToFirst() )
@@ -366,7 +369,7 @@ public class Globais
 			c.close();
 		ContentValues cv = new ContentValues( 5 );
 		cv.put( "alv_id", alv );
-		cv.put( "rem_sshd", sshd );
+		cv.put( "rem_usuario", sshd );
 		cv.put( "rem_nopessoa", nome );
 		cv.put( "rem_flsilen", 0 );
 		res = db.insert( "remetentes", null, cv );

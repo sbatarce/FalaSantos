@@ -164,7 +164,7 @@ public class MensagemActivity extends AppCompatActivity implements View.OnClickL
 				if( resposta.equals( "" ) )
 					return true;
 				}
-			String sql = "UPDATE corpo set cor_flatua=1, cor_resposta='" + resposta +
+			String sql = "UPDATE corpo set cor_resposta='" + resposta +
 				"' WHERE cor_id=" + corpo.getInt( "id" );
 			Globais.db.execSQL( sql );
 			corpo.put( "resposta", resposta );
@@ -201,17 +201,12 @@ public class MensagemActivity extends AppCompatActivity implements View.OnClickL
 					String chk = "0";
 					if( ckatua )
 						chk = "1";
-					sql = "UPDATE opcoes SET opt_flatua=1, opt_flchecked=" + chk +
+					sql = "UPDATE opcoes SET opt_flchecked=" + chk +
 						" WHERE opt_id=" + opcao.getInt( "id" );
 					Globais.db.execSQL( sql );
 					opcao.put("check", ckatua );
 					flatua = true;
 					}
-				}
-			if( flatua )
-				{
-				sql = "UPDATE corpo SET cor_flatua=1 WHERE cor_id=" + corpo.getInt( "id" );
-				Globais.db.execSQL( sql );
 				}
 			return true;
 			}
@@ -246,17 +241,12 @@ public class MensagemActivity extends AppCompatActivity implements View.OnClickL
 					String chk = "0";
 					if( ckatua )
 						chk = "1";
-					sql = "UPDATE opcoes SET opt_flatua=1, opt_flchecked=" + chk +
+					sql = "UPDATE opcoes SET opt_flchecked=" + chk +
 						" WHERE opt_id=" + opcao.getInt( "id" );
 					Globais.db.execSQL( sql );
 					opcao.put("check", ckatua );
 					flatua = true;
 					}
-				}
-			if( flatua )
-				{
-				sql = "UPDATE corpo SET cor_flatua=1 WHERE cor_id=" + corpo.getInt( "id" );
-				Globais.db.execSQL( sql );
 				}
 			return true;
 			}
@@ -288,7 +278,7 @@ public class MensagemActivity extends AppCompatActivity implements View.OnClickL
 				if( opcao.getBoolean( "check" ) &&
 						selatua != ixopt )
 					{
-					sql = "UPDATE opcoes SET opt_flatua=1, opt_flchecked=0 " +
+					sql = "UPDATE opcoes SET opt_flchecked=0 " +
 						"WHERE opt_id=" + opcao.getInt( "id" );
 					Globais.db.execSQL( sql );
 					opcao.put( "check", false );
@@ -297,17 +287,12 @@ public class MensagemActivity extends AppCompatActivity implements View.OnClickL
 				if( !opcao.getBoolean( "check" ) &&
 						selatua == ixopt )
 					{
-					sql = "UPDATE opcoes SET opt_flatua=1, opt_flchecked=1 " +
+					sql = "UPDATE opcoes SET opt_flchecked=1 " +
 						"WHERE opt_id=" + opcao.getInt( "id" );
 					Globais.db.execSQL( sql );
 					flatua = true;
 					opcao.put( "check", true );
 					}
-				}
-			if( flatua )
-				{
-				sql = "UPDATE corpo SET cor_flatua=1 WHERE cor_id=" + corpo.getInt( "id" );
-				Globais.db.execSQL( sql );
 				}
 			return true;
 			}
@@ -424,6 +409,7 @@ public class MensagemActivity extends AppCompatActivity implements View.OnClickL
 			Log.i( Globais.apptag, exc.getMessage() );
 			return false;
 			}
+		Globais.pFBMens.mandaRespostas();
 		return true;
 		}
 	
@@ -455,6 +441,7 @@ public class MensagemActivity extends AppCompatActivity implements View.OnClickL
 						break;
 					}
 				}
+			Globais.pFBMens.mandaRespostas();
 			return true;
 			}
 		catch( JSONException jexc )
@@ -540,6 +527,7 @@ public class MensagemActivity extends AppCompatActivity implements View.OnClickL
 	
 	private void cancelar()
 		{
+		Globais.pFBMens.mandaRespostas();
 		if( dtresp != null )
 			{
 			finish();
@@ -749,7 +737,7 @@ public class MensagemActivity extends AppCompatActivity implements View.OnClickL
 			{
 			String sql = "SELECT cor.cor_id, cor_ticorpo, cor_corpo, cor_texto," +
 				"cor_resposta, cor_stresposta, cor_stobrigatoria," +
-				"opt_id, opt_codigo, opt_texto, opt_flchecked, opt_flatua " +
+				"opt_id, opt_codigo, opt_texto, opt_flchecked " +
 				"FROM         corpo cor " +
 				"left join   opcoes opt ON " +
 				"             opt.cor_id=cor.cor_id " +
@@ -809,8 +797,6 @@ public class MensagemActivity extends AppCompatActivity implements View.OnClickL
 				if( curopt.getInt( curopt.getColumnIndex( "opt_flchecked" ) ) == 1 )
 					flchk = true;
 				boolean flatu = false;
-				if( curopt.getInt( curopt.getColumnIndex( "opt_flatua" ) ) == 1 )
-					flatu = true;
 				opcao = new JSONObject();
 				opcao.put( "id", optid );
 				opcao.put( "codigo", codigo );

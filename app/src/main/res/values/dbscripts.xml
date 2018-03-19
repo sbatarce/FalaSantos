@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <integer name="dbvers">8</integer>
-  <integer name="appvers">102</integer>
+  <integer name="dbvers">9</integer>
+  <integer name="appvers">103</integer>
   <!--
    >  Os campos xxx_flatua indicam que o segmento sofreu alteração e portanto
       deverão ser enviados ao servidor assim que houver condições
@@ -47,7 +47,7 @@
     <item>remetentes|
       rem_id        INTEGER PRIMARY KEY AUTOINCREMENT,
       alv_id        INTEGER NOT NULL,
-      rem_sshd      TEXT,
+      rem_usuario   TEXT,
       rem_nopessoa  TEXT,
       rem_flsilen   INTEGER DEFAULT 0,
       FOREIGN KEY(alv_id) REFERENCES alvos(alv_id)
@@ -62,33 +62,33 @@
       msg_dtreceb   TEXT,
       msg_dtleitu   TEXT,
       msg_dtresp    TEXT,
-      msg_dtretorno TEXT,
+      msg_dtuatua   TEXT,
       msg_dtdelete  TEXT,
-      msg_flatua    INTEGER,
+      msg_confiden  INTEGER DEFAULT 0,
       FOREIGN KEY(rem_id) REFERENCES remetentes(rem_id)
     </item>
 
     <item>corpo|
-      cor_id              INTEGER PRIMARY KEY,
+      cor_id              INTEGER PRIMARY KEY AUTOINCREMENT,
       msg_id              INTEGER NOT NULL,
+      cor_idcor           INTEGER,
       cor_ticorpo         INTEGER,
       cor_corpo           TEXT,
       cor_texto           TEXT,
       cor_resposta        TEXT,
       cor_stresposta      INTEGER DEFAULT 0,
       cor_stobrigatoria   INTEGER DEFAULT 0,
-      cor_flatua          INTEGER DEFAULT 0,
       FOREIGN KEY(msg_id) REFERENCES mensagens(msg_id)
     </item>
 
     <!-- opt_id = opt_id do servidor-->
     <item>opcoes|
-      opt_id        INTEGER PRIMARY KEY,
+      opt_id        INTEGER PRIMARY KEY AUTOINCREMENT,
       cor_id        INTEGER NOT NULL,
+      opt_idopt     INTEGER,
       opt_codigo    TEXT,
       opt_texto     TEXT,
       opt_flchecked INTEGER,
-      opt_flatua    INTEGER DEFAULT 0,
       FOREIGN KEY(cor_id) REFERENCES corpo(cor_id)
     </item>
 

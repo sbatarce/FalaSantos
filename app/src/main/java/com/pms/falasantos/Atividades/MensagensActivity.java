@@ -135,7 +135,7 @@ public class MensagensActivity extends AppCompatActivity
 				if( clm.daleitu == null )
 					{
 					String sql = "UPDATE mensagens SET msg_dtLeitu='" + Globais.agoraDB() +
-						"', msg_flatua=1 WHERE msg_id=" + clm.idmens;
+						"' WHERE msg_id=" + clm.idmens;
 					try
 						{
 						Globais.db.execSQL( sql );

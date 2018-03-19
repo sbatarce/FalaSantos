@@ -78,7 +78,7 @@ public class recebeFBMens extends FirebaseMessagingService
 			Log.i( Globais.apptag, "Message Notification Body: " + fbmens.getNotification().getBody() );
 			Log.i( Globais.apptag, "Message Notification Title: " + fbmens.getNotification().getTitle() );
 			}
-		
+		Globais.flatua = true;
 		//sendNotification( "Texto do sendNotification" );
 		}
 // [END receive_message]

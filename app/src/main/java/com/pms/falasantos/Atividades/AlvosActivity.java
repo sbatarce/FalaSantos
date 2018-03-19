@@ -154,16 +154,26 @@ public class AlvosActivity extends AppCompatActivity implements RespostaConfig
 						{
 						JSONObject junid = dados.getJSONObject( i );
 						int idtia = junid.getInt( "IDTIA" );
-						int idcvl = junid.getInt( "IDCVL" );
-						int idtcv = junid.getInt( "IDTCV" );
-						int tamax = junid.getInt( "TAMAX" );
+						
 						String noalvo = junid.getString( "TIALVO" );
 						String origem = junid.getString( "ORIGEM" );
 						String area = junid.getString( "AREA" );
 						String titulo = junid.getString( "TITULO" );
-						String campo = junid.getString( "CAMPO" );
 						String service = junid.getString( "SERVICE" );
-						String itens = junid.getString( "ITENS" );
+
+						int idcvl = -1;
+						int idtcv = -1;
+						int tamax = 0;
+						String campo = "";
+						String itens = "";
+						if( !titulo.equals( "" ) )
+							{
+							idcvl = junid.getInt( "IDCVL" );
+							idtcv = junid.getInt( "IDTCV" );
+							tamax = junid.getInt( "TAMAX" );
+							campo = junid.getString( "CAMPO" );
+							itens = junid.getString( "ITENS" );
+							}
 						//
 						if( !area.equals( areaant ) )
 							{
@@ -181,7 +191,7 @@ public class AlvosActivity extends AppCompatActivity implements RespostaConfig
 							lsalvos.add( clalvo );
 							tiaant = idtia;
 							}
-						if( titulo != null )
+						if( titulo != null && !titulo.equals( "" ) )
 							{
 							clalvo.addCampo( idtcv, tamax, titulo, campo, itens );
 							}
