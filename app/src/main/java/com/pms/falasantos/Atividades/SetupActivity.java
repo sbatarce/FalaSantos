@@ -134,7 +134,7 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 	@Override
 	public boolean onCreateOptionsMenu( Menu menu )
 		{
-		Globais.setMenuPadrao( this, menu );
+		Globais.setMenuAjuda( this, menu );
 		getMenuInflater().inflate( R.menu.menu_main, menu );
 		return true;
 		}
@@ -152,12 +152,24 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 		Globais.atividade = Globais.Atividade.Setup;
 		Globais.setContext( this );
 		}
+	
+	private boolean flback;
+	@Override
+	public void onBackPressed()
+		{
+		super.onBackPressed();
+		flback = true;
+		}
+	
 	@Override
 	protected void onPause()
 		{
 		super.onPause();
-		Globais.atividade = Globais.Atividade.nenhuma;
+		if( !flback )
+			Globais.atividade = Globais.Atividade.nenhuma;
+		flback = false;
 		}
+	
 	@Override
 	public void onWindowFocusChanged( boolean hasFocus )
 		{
@@ -220,8 +232,9 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 			if( (questao == null && senhaconf != null) ||
 				(questao != null && senhaconf == null) )
 				{
-				String msg = "Os campos \"Questão\" e \"Senha\" devem ser fornecidos ou omitidos juntos, isto é, " +
-					"preencha os dois ou omita os dois.";
+				String msg = "Os campos \"Pergunta mágica\" e \"Senha Confidencial\" não " +
+					"são obrigatórios, porém devem ser fornecidos ou omitidos em conjunto, " +
+					"isto é, preencha ou omita os dois.";
 				Globais.Alerta( this, "Por favor, corrija.", msg );
 				return;
 				}
@@ -380,19 +393,19 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 				if( erro.contains( "01017" ) )
 					Globais.Alerta( this, "Acesso negado", "SSHD e/ou senha não corretos" );
 				else
-					Globais.Alerta( this, "Resposta do servidor com erro", erro );
+					Globais.Alerta( this, "Resposta do servidor com erro (1)", erro );
 				return;
 				}
 			if( !jobj.has( "status" ) )
 				{
-				Globais.Alerta( this, "Resposta do servidor com erro",
+				Globais.Alerta( this, "Resposta do servidor com erro (2)",
 				                "Resposta sem indicativo de estado" );
 				return;
 				}
 			if( !jobj.getString( "status" ).equals( "OK" ) && !jobj.getString( "status" ).equals( "ok" ) )
 				{
 				String status = jobj.getString( "status" );
-				Globais.Alerta( this, "Resposta do servidor com erro", status );
+				Globais.Alerta( this, "Resposta do servidor com erro (3)", status );
 				return;
 				}
 			//  processamento de cada estado
@@ -401,7 +414,7 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 				case cadmunicipe:
 					if( !jobj.has( "id" ) )
 						{
-						Globais.Alerta( this, "Resposta do servidor com erro",
+						Globais.Alerta( this, "Resposta do servidor com erro (4)",
 						                "Resposta sem indicativo do ID" );
 						return;
 						}
@@ -413,7 +426,7 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 				case cadfuncionario:
 					if( !jobj.has( "id" ) )
 						{
-						Globais.Alerta( this, "Resposta do servidor com erro",
+						Globais.Alerta( this, "Resposta do servidor com erro (5)",
 						                "Resposta sem indicativo do ID" );
 						return;
 						}

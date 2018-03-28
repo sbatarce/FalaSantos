@@ -6,12 +6,14 @@ package com.pms.falasantos.Outras;
 public class clAlvs
 	{
 	public String alvo;       //  nome do alvo
+	public int    id;         //  id do alvo no banco
 	public int    qtALer;     //  quantidade de mensagens não lidas
 	public int    qtTot;      //  quantidade total de mensagens não removidas
 	
-	public clAlvs( String alvo, int qtALer, int qtTot )
+	public clAlvs( String alvo, int id, int qtALer, int qtTot )
 		{
 		this.alvo = alvo;
+		this.id = id;
 		this.qtALer = qtALer;
 		this.qtTot = qtTot;
 		}

@@ -67,7 +67,7 @@ public class recebeFBMens extends FirebaseMessagingService
 				}
 			else
 				{
-				Globais.pFBMens.obterMens( false );
+				Globais.pFBMens.obterMens(  );
 				}
 				
 			}

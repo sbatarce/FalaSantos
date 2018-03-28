@@ -80,11 +80,23 @@ public class MensagemActivity extends AppCompatActivity implements View.OnClickL
 		((TextView) findViewById( R.id.txTitMens )).setText( titulo );
 		setupMens();
 		}
+	
+	private boolean flback;
+	@Override
+	public void onBackPressed()
+		{
+		super.onBackPressed();
+		flback = true;
+		cancelar();
+		}
+	
 	@Override
 	protected void onPause()
 		{
 		super.onPause();
-		Globais.atividade = Globais.Atividade.nenhuma;
+		if( !flback )
+			Globais.atividade = Globais.Atividade.nenhuma;
+		flback = false;
 		}
 	@Override
 	protected void onResume()
@@ -123,12 +135,6 @@ public class MensagemActivity extends AppCompatActivity implements View.OnClickL
 			}
 		}
 	
-	@Override
-	public void onBackPressed()
-		{
-		cancelar();
-		}
-
 	@Override
 	public void onWindowFocusChanged( boolean hasFocus )
 		{

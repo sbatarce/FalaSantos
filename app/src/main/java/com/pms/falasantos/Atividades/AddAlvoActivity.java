@@ -348,12 +348,24 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 		Globais.atividade = Globais.Atividade.AddAlvo;
 		Globais.setContext( this );
 		}
+
+	private boolean flback;
+	@Override
+	public void onBackPressed()
+		{
+		super.onBackPressed();
+		flback = true;
+		}
+	
 	@Override
 	protected void onPause()
 		{
 		super.onPause();
-		Globais.atividade = Globais.Atividade.nenhuma;
+		if( !flback )
+			Globais.atividade = Globais.Atividade.nenhuma;
+		flback = false;
 		}
+	
 	public void onClick( View view )
 		{
 		if( view.getId() == idOK )
@@ -388,6 +400,11 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 							body += "\"" + cmp.campo + "\": \"";
 							body += edtx.getText().toString() + "\"";
 							}
+						else
+							{
+							Globais.Alerta( this, "Atenção", "Todos os campos são obrigatórios" );
+							return;
+							}
 						break;
 					
 					case 30:
@@ -396,6 +413,11 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 							{
 							body += "\"" + cmp.campo + "\": \"";
 							body += cbbx.getSelectedItem().toString() + "\"";
+							}
+						else
+							{
+							Globais.Alerta( this, "Atenção", "Todos os campos são obrigatórios" );
+							return;
 							}
 						break;
 					
@@ -438,21 +460,28 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 				{
 				String erro = jobj.getString( "erro" );
 				if( erro.contains( "01017" ) )
+					{
 					Globais.Alerta( this, "Acesso negado", "SSHD e/ou senha não corretos" );
-				else
-					Globais.Alerta( this, "Resposta do servidor com erro", erro );
+					return;
+					}
+				if( erro.contains( "exclusiv") )
+					{
+					Globais.Alerta( this, "Duplicado", "Já há este alvo neste aparelho." );
+					return;
+					}
+				Globais.Alerta( this, "Resposta validando Alvo com erro:", erro );
 				return;
 				}
 			if( !jobj.has( "status" ) )
 				{
-				Globais.Alerta( this, "Resposta do servidor com erro",
+				Globais.Alerta( this, "Resposta do servidor com erro (15)",
 				                "Resposta sem indicativo de estado" );
 				return;
 				}
 			if( !jobj.getString( "status" ).equals( "OK" ) && !jobj.getString( "status" ).equals( "ok" ) )
 				{
 				String descr = jobj.getString( "descr" );
-				Globais.Alerta( this, "Resposta do servidor com erro", descr );
+				Globais.Alerta( this, "Resposta do servidor com erro (16)", descr );
 				return;
 				}
 			switch( state )

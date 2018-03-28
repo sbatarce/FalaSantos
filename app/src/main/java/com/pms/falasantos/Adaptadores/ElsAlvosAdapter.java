@@ -75,7 +75,11 @@ public class ElsAlvosAdapter extends BaseExpandableListAdapter
 			}
 		
 		((TextView)view.findViewById( R.id.txAlvo )).setText( clalv.alvo );
-		((TextView)view.findViewById( R.id.txTotALer )).setText( ""+clalv.qtALer+"/"+clalv.qtTot );
+		//((TextView)view.findViewById( R.id.txTotALer )).setText( ""+clalv.qtALer+"/"+clalv.qtTot );
+		if( clalv.qtALer > 0 )
+			((TextView)view.findViewById( R.id.txTotALer )).setText( ""+clalv.qtALer );
+		else
+			((TextView)view.findViewById( R.id.txTotALer )).setText( "" );
 		return view;
 		}
 	@Override
@@ -89,7 +93,11 @@ public class ElsAlvosAdapter extends BaseExpandableListAdapter
 			view = inflater.inflate( R.layout.rem_item, null );
 			}
 		((TextView)view.findViewById( R.id.txRemetente )).setText( clrems.rem );
-		((TextView)view.findViewById( R.id.txQtALer )).setText( ""+clrems.qtALer+"/"+clrems.qtTot );
+		//((TextView)view.findViewById( R.id.txQtALer )).setText( ""+clrems.qtALer+"/"+clrems.qtTot );
+		if( clrems.qtALer > 0 )
+			((TextView)view.findViewById( R.id.txQtALer )).setText( ""+clrems.qtALer );
+		else
+			((TextView)view.findViewById( R.id.txQtALer )).setText( "" );
 		return view;
 		}
 	@Override

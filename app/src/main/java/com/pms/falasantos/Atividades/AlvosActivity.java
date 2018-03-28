@@ -77,8 +77,8 @@ public class AlvosActivity extends AppCompatActivity implements RespostaConfig
 	@Override
 	public boolean onCreateOptionsMenu( Menu menu )
 		{
-//		Globais.setMenuPadrao( this, menu );
-//		getMenuInflater().inflate( R.menu.menu_main, menu );
+		Globais.setMenuAjuda( this, menu );
+		getMenuInflater().inflate( R.menu.menu_main, menu );
 		return true;
 		}
 	
@@ -97,11 +97,22 @@ public class AlvosActivity extends AppCompatActivity implements RespostaConfig
 		Globais.atividade = Globais.Atividade.Alvos;
 		Globais.setContext( this );
 		}
+	
+	private boolean flback;
+	@Override
+	public void onBackPressed()
+		{
+		super.onBackPressed();
+		flback = true;
+		}
+	
 	@Override
 	protected void onPause()
 		{
 		super.onPause();
-		Globais.atividade = Globais.Atividade.nenhuma;
+		if( !flback )
+			Globais.atividade = Globais.Atividade.nenhuma;
+		flback = false;
 		}
 	@Override
 	public void Resposta( String resposta )
@@ -117,19 +128,19 @@ public class AlvosActivity extends AppCompatActivity implements RespostaConfig
 				if( erro.contains( "01017" ) )
 					Globais.Alerta( this, "Acesso negado", "SSHD e/ou senha não corretos" );
 				else
-					Globais.Alerta( this, "Resposta do servidor com erro", erro );
+					Globais.Alerta( this, "Resposta do servidor com erro (10)", erro );
 				return;
 				}
 			if( !jobj.has( "status" ) )
 				{
-				Globais.Alerta( this, "Resposta do servidor com erro",
+				Globais.Alerta( this, "Resposta do servidor com erro (11)",
 				                "Resposta sem indicativo de estado" );
 				return;
 				}
 			if( !jobj.getString( "status" ).toUpperCase().equals( "OK" ) )
 				{
 				String status = jobj.getString( "status" );
-				Globais.Alerta( this, "Resposta do servidor com erro", status );
+				Globais.Alerta( this, "Resposta do servidor com erro (12)", status );
 				return;
 				}
 			//  processamento de cada estado
@@ -142,7 +153,7 @@ public class AlvosActivity extends AppCompatActivity implements RespostaConfig
 					List<clAlvo> lsalvos = new ArrayList<>();
 					if( !jobj.has( "dados" ) )
 						{
-						Globais.Alerta( this, "Resposta do servidor com erro",
+						Globais.Alerta( this, "Resposta do servidor com erro (13)",
 						                "Resposta sem dados" );
 						return;
 						}

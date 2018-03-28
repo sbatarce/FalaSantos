@@ -5,12 +5,12 @@ package com.pms.falasantos.Outras;
 
 public class clMensagem
 	{
-	public String titulo;
-	public String dareceb;
+	public String  titulo;
+	public String  dareceb;
 	public String  daleitu;
 	public String  daresp;
 	public String  mensagem;
-	public String  idmens;
+	public String  idmens;      //  id da mensagem msg_id => vide msg_msaid
 	public boolean flresp;      //  indica que a mensagem tem pelo menos 1 corpo com resposta
 	public boolean confidencial;      //  indica que a mensagem é confidencial
 	

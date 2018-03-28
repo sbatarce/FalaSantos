@@ -1,5 +1,7 @@
 package com.pms.falasantos.Atividades;
 
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Handler;
@@ -10,26 +12,36 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ExpandableListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.pms.falasantos.Adaptadores.ElsMensAdapter;
+import com.pms.falasantos.Comunicacoes.RequestHttp;
 import com.pms.falasantos.Globais;
 import com.pms.falasantos.Outras.clMensagem;
 import com.pms.falasantos.R;
+import com.pms.falasantos.RespostaConfig;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.microedition.khronos.opengles.GL;
-
-public class MensagensActivity extends AppCompatActivity
+public class MensagensActivity extends AppCompatActivity implements RespostaConfig
 	{
+	RequestHttp req = null;
+	private ProgressDialog progress;
+
 	String idreme;
 	String noreme;
 	String noalvo;
+	
+	private long delay = 5000;
 	
 	//ArrayList<HashMap<String, Object>> oslist = new ArrayList<HashMap<String, Object>>();
 	ArrayList<String> idmsgar = new ArrayList<>();
@@ -41,11 +53,16 @@ public class MensagensActivity extends AppCompatActivity
 	ExpandableListView expview;
 	HashMap<String, List<clMensagem>> lista = new HashMap<>();
 	
+	private int posData = -1;
+	private int posMens = -1;
+	private int msaid = -1;
+	private int msgid = -1;
+	private int remid = -1;
+	
 	int ixnld = -1;               //  índice da primeira mensagem não lida
 	
-	final Handler hdl = new Handler();
-	
-	private final Runnable sendData = new Runnable()
+	final Handler          hdl      = new Handler();
+	private final Runnable atualiza = new Runnable()
 		{
 		public void run()
 			{
@@ -55,16 +72,26 @@ public class MensagensActivity extends AppCompatActivity
 				Globais.semNovidades();
 				}
 			else
-				hdl.postDelayed( sendData, Globais.delayRefresh );
+				hdl.postDelayed( atualiza, delay );
 			}
 		};
+	
+	private boolean flback;
+	@Override
+	public void onBackPressed()
+		{
+		super.onBackPressed();
+		flback = true;
+		}
 	
 	@Override
 	protected void onPause()
 		{
 		super.onPause();
-		Globais.atividade = Globais.Atividade.nenhuma;
-		hdl.removeCallbacks( sendData );
+		if( !flback )
+			Globais.atividade = Globais.Atividade.nenhuma;
+		flback = false;
+		hdl.removeCallbacks( atualiza );
 		}
 	@Override
 	protected void onResume()
@@ -79,8 +106,10 @@ public class MensagensActivity extends AppCompatActivity
 	@Override
 	public boolean onCreateOptionsMenu( Menu menu )
 		{
+		/*
 		Globais.setMenuPadrao( this, menu );
 		getMenuInflater().inflate( R.menu.menu_main, menu );
+		*/
 		return true;
 		}
 	
@@ -117,21 +146,81 @@ public class MensagensActivity extends AppCompatActivity
 		idmsgar.clear();
 		//
 		ixnld = -1;
-		obterMensg();
 		setupList();
+		obterMensg();
 		Globais.setSemUso();
+		}
+	
+	private void remoMens()
+		{
+		Cursor cur = null;
+		String sql = "select msg_msaid, rem_id from mensagens where msg_id=" + msgid;
+		try
+			{
+			cur = Globais.db.rawQuery( sql, null );
+			if( !cur.moveToFirst() )
+				{
+				sql = "Os dados do FalaSantos estão corrompidos.\n" +
+					"Por favor, desinstale-o e instale novamente para corrigir.";
+				Globais.Alerta( this, "Erro grave", sql );
+				cur.close();
+				return;
+				}
+			msaid = cur.getInt( cur.getColumnIndex( "msg_msaid" ) );
+			remid = cur.getInt( cur.getColumnIndex( "rem_id" ) );
+			
+			progress = ProgressDialog.show( this, "Por favor, aguarde...", "Removendo mensagem...",
+			                                true );
+			req = new RequestHttp( this );
+			String body = "[{ \"lista\": " + msaid + ", \"cmp\": \"D\", \"datahora\": \"" +
+				Globais.agoraDB() + "\" }]";
+			req.setBody( body );
+			String url = Globais.dominio + "/services/SRV_ATUAMSAS.php";
+			req.delegate = this;
+			req.execute( url );
+			}
+		catch( Exception e )
+			{
+			Log.i( Globais.apptag, "remoMens: " + e.getMessage() );
+			if( cur != null )
+				cur.close();
+			sql = "Os dados do FalaSantos foram corrompidos.\n" +
+				"Por favor, desinstale-o e instale novamente para corrigir.";
+			Globais.Alerta( this, "Erro grave!!", sql );
+			return;
+			}
 		}
 
 	private void setupList()
 		{
+		final android.app.AlertDialog.Builder confDelete =
+			new android.app.AlertDialog.Builder( MensagensActivity.this );
+		confDelete.setTitle( "Atenção! Isto não poderá ser desfeito" );
+		confDelete.setCancelable( false );
+		confDelete.setNegativeButton( "Não, manter", new DialogInterface.OnClickListener()
+			{
+			@Override
+			public void onClick( DialogInterface dialogInterface, int i )
+				{
+				}
+			} );
+		confDelete.setPositiveButton( "Sim, remover", new DialogInterface.OnClickListener()
+			{
+			@Override
+			public void onClick( DialogInterface dialogInterface, int i )
+				{
+				clMensagem clmsg = (clMensagem) msgadapter.getChild( posData, posMens );
+				msgid = Integer.parseInt( clmsg.idmens );
+				remoMens(  );
+				}
+			} );
+		
 		expview.setOnChildClickListener( new ExpandableListView.OnChildClickListener()
 			{
 			@Override
 			public boolean onChildClick( ExpandableListView parent, View v, int groupPosition, int childPosition, long id )
 				{
 				clMensagem clm = (clMensagem) msgadapter.getChild( groupPosition, childPosition );
-//				if( !clm.getFlresp() )
-//					return false;
 				if( clm.daleitu == null )
 					{
 					String sql = "UPDATE mensagens SET msg_dtLeitu='" + Globais.agoraDB() +
@@ -154,13 +243,33 @@ public class MensagensActivity extends AppCompatActivity
 				}
 			} );
 		
-		expview.setOnGroupExpandListener( new ExpandableListView.OnGroupExpandListener()
+		expview.setOnItemLongClickListener( new ExpandableListView.OnItemLongClickListener()
 			{
 			@Override
-			public void onGroupExpand( int ixgr )
+			public boolean onItemLongClick(AdapterView<?> parent, View view, int ixpos, long id)
 				{
+				posMens = ExpandableListView.getPackedPositionChild( id );
+				posData = ExpandableListView.getPackedPositionGroup( id );
+				if( ExpandableListView.getPackedPositionType(id) == ExpandableListView.PACKED_POSITION_TYPE_CHILD )
+					{
+					if( posData >= 0 && posMens >= 0 )
+						{
+						clMensagem clm = (clMensagem) msgadapter.getChild( posData, posMens );
+						String msg;
+						msg = "";
+						if( clm.daleitu == null )
+							msg += "Esta mensagem ainda não foi lida.\n";
+						if( clm.flresp && clm.daresp == null )
+							msg += "O remetente solicita uma resposta.\n";
+						msg += "Deseja remover permanentemente a mensagem?";
+						confDelete.setMessage( msg );
+						confDelete.show();
+						}
+					}
+				return true;
 				}
-			} );
+			});
+		
 		}
 	//  verifica se a mensagem tem algum corpo com resposta
 	//  seta o flresp do clMensagem
@@ -305,6 +414,8 @@ public class MensagensActivity extends AppCompatActivity
 			Log.i( Globais.apptag, "obterMensg: " + e.getMessage() );
 			if( curmsg != null )
 				curmsg.close();
+			hdl.postDelayed( atualiza, delay );
+			Globais.semNovidades();
 			return false;
 			}
 		if( lsmens.size() > 0 )
@@ -320,7 +431,124 @@ public class MensagensActivity extends AppCompatActivity
 			if( !lido.get( ix ) )
 				expview.expandGroup( ix );
 			}
-		hdl.postDelayed( sendData, Globais.delayRefresh );
+		Globais.semNovidades();
+		hdl.postDelayed( atualiza, delay );
 		return true;
+		}
+	@Override
+	public void Resposta( String resposta )
+		{
+		progress.dismiss();
+		
+		try
+			{
+			JSONObject jobj = new JSONObject( resposta );
+			if( jobj.has( "erro" ) )
+				{
+				String erro = jobj.getString( "erro" );
+				if( erro.contains( "01017" ) )
+					{
+					Globais.Alerta( this, "Acesso negado", "SSHD e/ou senha não corretos" );
+					return;
+					}
+				if( erro.contains( "exclusiv" ) )
+					{
+					Globais.Alerta( this, "Duplicado", "Já há este alvo neste aparelho." );
+					return;
+					}
+				Globais.Alerta( this, "Resposta validando Alvo com erro:", erro );
+				return;
+				}
+			if( !jobj.has( "status" ) )
+				{
+				Globais.Alerta( this, "Resposta do servidor com erro (15)",
+				                "Resposta sem indicativo de estado" );
+				return;
+				}
+			if( !jobj.getString( "status" ).equals( "OK" ) && !jobj.getString( "status" ).equals( "ok" ) )
+				{
+				String descr = jobj.getString( "descr" );
+				Globais.Alerta( this, "Resposta do servidor com erro (16)", descr );
+				return;
+				}
+			//  remove a mensagem do banco interno
+			//  opcoes
+			String query =
+				"delete from opcoes " +
+					"   where opt_id in  " +
+					"      (SELECT opt.opt_id " +
+					"         FROM         corpo cor " +
+					"         inner join   opcoes opt on opt.cor_id=cor.cor_id " +
+					"         where cor.msg_id=" + msgid + " )";
+			try
+				{
+				Globais.db.execSQL( query );
+				}
+			catch( Exception e )
+				{
+				Log.i( Globais.apptag, "Removendo opcoes: " + e.getMessage() );
+				return;
+				}
+			//  corpos
+			query = "delete from corpo where msg_id=" + msgid;
+			try
+				{
+				Globais.db.execSQL( query );
+				}
+			catch( Exception e )
+				{
+				Log.i( Globais.apptag, "Removendo corpos: " + e.getMessage() );
+				return;
+				}
+			//  mensagens
+			query = "delete from mensagens where msg_id=" + msgid;
+			try
+				{
+				Globais.db.execSQL( query );
+				}
+			catch( Exception e )
+				{
+				Log.i( Globais.apptag, "Removendo mensagens: " + e.getMessage() );
+				return;
+				}
+			Cursor cur = null;
+			query = "select count(1) as qtd from mensagens where rem_id=" + remid;
+			try
+				{
+				cur = Globais.db.rawQuery( query, null );
+				if( !cur.moveToFirst() )
+					{
+					query = "Os dados do FalaSantos estão corrompidos.\n" +
+						"Por favor, desinstale-o e instale novamente para corrigir.";
+					Globais.Alerta( this, "Erro grave", query );
+					cur.close();
+					return;
+					}
+				int qtd = cur.getInt( cur.getColumnIndex( "qtd" ) );
+				cur.close();
+				if( qtd < 1 )
+					{
+					query = "delete from remetentes where rem_id=" + remid;
+					Globais.db.execSQL( query );
+					}
+				}
+			catch( Exception e )
+				{
+				Log.i( Globais.apptag, "Removendo remetentes: " + e.getMessage() );
+				return;
+				}
+			//  refaz o display
+			obterMensg();
+			}
+		catch( JSONException jexc )
+			{
+			Globais.Alerta( this, "Por favor, tente mais tarde.", "Falhou acesso ao servidor." );
+			Log.i( "chamada", jexc.getMessage() );
+			}
+		catch( Exception exc )
+			{
+			Toast.makeText( getApplicationContext(), exc.getMessage(), Toast.LENGTH_LONG ).show();
+			Log.i( "chamada", exc.getMessage() );
+			}
 		}
 	}

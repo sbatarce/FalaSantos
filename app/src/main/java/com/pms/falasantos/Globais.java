@@ -10,6 +10,8 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.media.MediaScannerConnection;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Environment;
 import android.support.v4.content.ContextCompat;
 import android.telephony.TelephonyManager;
@@ -20,6 +22,7 @@ import com.google.firebase.iid.FirebaseInstanceId;
 import com.pms.falasantos.Atividades.AlvosActivity;
 import com.pms.falasantos.Atividades.MainActivity;
 import com.pms.falasantos.Atividades.SetupActivity;
+import com.pms.falasantos.Comunicacoes.RequestHttp;
 import com.pms.falasantos.Comunicacoes.processFBMens;
 import com.pms.falasantos.Outras.clAlvo;
 
@@ -42,6 +45,9 @@ public class Globais
 	private static boolean netState  = false;
 	private static boolean wifiState = false;
 	private static boolean connState   = false;
+	
+	private static boolean httpConn = false;
+	private static boolean httpWifi = false;
 	
 	public enum Atividade
 		{
@@ -181,11 +187,13 @@ public class Globais
 	static public void semNovidades()
 		{
 		Globais.db.execSQL( "UPDATE dispositivo SET dis_flatua=0" );
+		flatua = false;
 		}
 	
 	static public void comNovidades()
 		{
 		Globais.db.execSQL( "UPDATE dispositivo SET dis_flatua=1" );
+		flatua = true;
 		}
 	
 	static public String nuSerial()
@@ -281,7 +289,27 @@ public class Globais
 	
 	static public boolean isConnected()
 		{
-		return connState;
+		httpConn = false;
+		httpWifi = false;
+		ConnectivityManager cm = ( ConnectivityManager ) ctx.getSystemService( Context.CONNECTIVITY_SERVICE );
+		NetworkInfo netInfo = cm.getActiveNetworkInfo();
+		//  verifica conexão
+		if( netInfo == null )
+			return false;
+		if( netInfo.isConnected( ) )
+			httpConn = true;
+		else
+			return false;
+		//  verifica wifi
+		NetworkInfo mWifi = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+		if( mWifi.isConnected() )
+			httpWifi = true;
+		else
+			httpWifi = false;
+
+		if( config.flWIFI && !httpWifi )
+			return false;
+		return true;
 		}
 	
 	static private boolean verifyConn()
@@ -830,7 +858,14 @@ public class Globais
 	
 	static private void helpAlvos()
 		{
-		String msg =  "-";
+		String msg =  "-Tela de escolha de alvos a adicionar.\n" +
+			"-Abaixo estão todos os \"alvos\", separados por área de interesse " +
+			"disponíveis para você.\n" +
+			"-Toque em uma das áreas e os alvos associados serão mostrados.\n" +
+			"-Toque a seguir no alvo e eventualmente alguns dados serão solicitados " +
+			"em uma nova tela, específica de cada alvo.\n" +
+			"-Preencha os dados corretamente e estará apto a receber mensagens " +
+			"específicas do alvo criado.";
 		Globais.Alerta( ctx, "Ajuda", msg );
 		}
 	
@@ -857,8 +892,7 @@ public class Globais
 	
 	static private void helpSetup()
 		{
-		String msg =
-			"-Se você for funcionário ou terceiro da Prefeitura e possuir " +
+		String msg = "-Se você for funcionário ou terceiro da Prefeitura e possuir " +
 			"SSHD, marque \"Funcionário ou terceiro da Prefeitura\".\n" +
 			"-Caso contrário marque \"Munícipe\".\n" +
 			"-Os horários inicial e final definem o intervalo em que você aceita receber notificações.\n" +
@@ -866,15 +900,23 @@ public class Globais
 			"marque \"Não usar a banda do celular(so WIFI)\". " +
 			"Mesmo conectado pela banda larga, você continuará a receber notificações da Prefeitura " +
 			"mas as mensagens só serão enviadas ao seu celular quando você estiver conectado via WIFI.\n" +
-			"-Crie uma senha para que você possa ler mensagens confidenciais. Alguma mensagens " +
+			"-Crie uma senha para que você possa ler mensagens confidenciais. Algumas mensagens " +
 			"somente deverão ser vistas por você e você somente poderá acessá-las se tiver uma " +
-			"senha cadastrada. Crie uma senha e a escreva nocampo \"Senha\". No campo \"Questão Senha\" " +
-			"escreva uma pergunta cuja resposta seja a senha. Caso voce a esqueça mostraremos " +
+			"Senha Confidencial cadastrada. Crie uma senha no campo \"Senha Confidencial\". " +
+			"No campo \"Pergunta mágica\" escreva uma pergunta cuja resposta seja a " +
+			"Senha Confidencial. Assim, Caso voce esqueça a senha mostraremos " +
 			"a pergunta para te auxiliar. Por exemplo:\n" +
-			"Questão Senha: nome do meu primeiro cãozinho\n" +
-			"Senha: floquinho\n" +
+			"Pergunta mágica: Qual o nome do meu primeiro cãozinho\n" +
+			"Senha Confidencial: floquinho\n" +
 			"Evite usar letras maiúsculas e acentos na senha para evitar dúvidas.\n" +
-			"Quando solicitado, mostraremos a Questão Senha de forma a te relembrar a senha criada.";
+			"Quando solicitado, mostraremos a Pergunta mágica de forma a te ajudar a " +
+			"relembrar a Senha Confidencial criada.\n" +
+			"-Se você for funcionário ou terceiro da Prefeitura preencha seu SSHD e a " +
+			"senha correspondente.\n" +
+			"-Se você não for funcionário da Prefeitura, preencha seu nome completo, " +
+			"a data de seu nascimento e seu CPF.\n" +
+			"-Estes dados são necessários para te identificar junto à Prefeitura\n" +
+			"-Toque em OK no pé da tela e você estará apto a receber mensagens da Prefeitura.";
 		Globais.Alerta( ctx, "Ajuda", msg );
 		}
 	
@@ -888,8 +930,8 @@ public class Globais
 		if( idtel != null )
 			{
 			if( idtel.equals( "355256063048937" ) ||
-					idtel.equals( "354133073258312" ) ||
-					idtel.equals( "000000000000000" ) )
+				idtel.equals( "354133073258312" ) ||
+				idtel.equals( "000000000000000" ) )
 				{
 				menu.add( 0, R.integer.mnidToken, ++order, R.string.mntxToken );
 				menu.add( 0, R.integer.mnidRemoveDB, ++order, R.string.mntxRemoveDB );
@@ -898,6 +940,12 @@ public class Globais
 				menu.add( 0, R.integer.mnidInitDB, ++order, R.string.mntxInitDB );
 				}
 			}
+		}
+	
+	static public void setMenuAjuda( Context contx, Menu menu )
+		{
+		int order = 0;
+		menu.add( 0, R.integer.mnidAjuda, ++order, R.string.mntxAjuda );
 		}
 	
 	static public void prcMenuItem( Context ctx, int idmenu )

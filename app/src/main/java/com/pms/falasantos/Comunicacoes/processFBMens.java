@@ -4,12 +4,8 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.RemoteMessage;
-import com.pms.falasantos.Atividades.AddAlvoActivity;
-import com.pms.falasantos.Atividades.SetupActivity;
 import com.pms.falasantos.Globais;
 import com.pms.falasantos.RespostaConfig;
 
@@ -53,22 +49,13 @@ public class processFBMens implements RespostaConfig
 		this.ctx = ctx;
 		}
 	
-	public boolean obterMens( boolean prog )
+	public boolean obterMens(  )
 		{
 		if( !Globais.isConnected() )
 			return false;
-		if( prog )
-			{
-			progress = ProgressDialog.show( ctx, "Por favor, espere...",
-			                                "Obtendo as últimas mensagens...",
-			                                true );
-			flprog = true;
-			}
-		else
-			flprog = false;
-		
-		state = State.obtmens;
+		//
 		req = new RequestHttp( ctx );
+		state = State.obtmens;
 		String url = Globais.dominio + "/services/SRV_OBTERMENS.php?";
 		url += "iddis=" + URLEncoder.encode( ""+Globais.config.iddis );
 		req.delegate = this;
@@ -277,7 +264,7 @@ public class processFBMens implements RespostaConfig
 							opts = new JSONArray();
 							corpo.put( "opcoes", opts );
 							}
-						int optid = cur.getInt( cur.getColumnIndex( "opt_id" ) );
+						int optid = cur.getInt( cur.getColumnIndex( "opt_idopt" ) );
 						opts.put( optid );
 						break;
 					}
@@ -343,19 +330,19 @@ public class processFBMens implements RespostaConfig
 				if( erro.contains( "01017" ) )
 					Globais.Alerta( ctx, "Acesso negado", "SSHD e/ou senha não corretos" );
 				else
-					Globais.Alerta( ctx, "Resposta do servidor com erro", erro );
+					Globais.Alerta( ctx, "Resposta do servidor com erro (6)", erro );
 				return;
 				}
 			if( !jobj.has( "status" ) )
 				{
-				Globais.Alerta( ctx, "Resposta do servidor com erro",
+				Globais.Alerta( ctx, "Resposta do servidor com erro (7)",
 				                "Resposta sem indicativo de estado" );
 				return;
 				}
 			if( !jobj.getString( "status" ).equals( "OK" ) && !jobj.getString( "status" ).equals( "ok" ) )
 				{
 				String status = jobj.getString( "status" );
-				Globais.Alerta( ctx, "Resposta do servidor com erro", status );
+				Globais.Alerta( ctx, "Resposta do servidor com erro (8)", status );
 				return;
 				}
 			//  processamento de cada estado
@@ -364,7 +351,7 @@ public class processFBMens implements RespostaConfig
 				case obtmens:
 					if( !jobj.has( "quantidade" ) )
 						{
-						Globais.Alerta( ctx, "Resposta do servidor com erro",
+						Globais.Alerta( ctx, "Resposta do servidor com erro (9)",
 						                "Resposta sem indicativo de quantidade de mensagens" );
 						return;
 						}

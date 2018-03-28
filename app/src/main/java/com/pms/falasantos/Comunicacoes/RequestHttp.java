@@ -27,10 +27,10 @@ public class RequestHttp extends AsyncTask< String, Long, String >
 	{
 	enum HTTPSTATE
 		{
-			conectado,
-			conectando,
-			desconectado,
-			desconhecido
+		conectado,
+		conectando,
+		desconectado,
+		desconhecido
 		}
 	public HTTPSTATE httpState = HTTPSTATE.desconectado;
 	public HTTPSTATE wifiState = HTTPSTATE.desconectado;
@@ -43,7 +43,8 @@ public class RequestHttp extends AsyncTask< String, Long, String >
 	public void setAuth( String user, String senha )
 		{
 		String aux = user + ":" + senha;
-		authbasic = "Basic " + Base64.encodeToString( aux.getBytes( ), Base64.DEFAULT );
+		authbasic = "Basic " +
+			new String( Base64.encodeToString( aux.getBytes( ), /*Base64.DEFAULT*/0 ));
 		}
 	public void setHeader( String key, String val )
 		{
