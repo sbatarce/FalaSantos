@@ -1,5 +1,6 @@
 package com.pms.falasantos;
 
+import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -20,9 +21,9 @@ import android.view.Menu;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.pms.falasantos.Atividades.AlvosActivity;
+import com.pms.falasantos.Atividades.ConfidenActivity;
 import com.pms.falasantos.Atividades.MainActivity;
 import com.pms.falasantos.Atividades.SetupActivity;
-import com.pms.falasantos.Comunicacoes.RequestHttp;
 import com.pms.falasantos.Comunicacoes.processFBMens;
 import com.pms.falasantos.Outras.clAlvo;
 
@@ -99,6 +100,12 @@ public class Globais
 		Globais.clalvo = clalvo;
 		}
 	
+	static public class mensPosic           //  posição da lista de mensagens
+		{
+		static public int grPos;
+		static public int chPos;
+		}
+	
 	static public class config
 		{
 		static public int     iddis = -1;                //  id deste dispositivo
@@ -117,6 +124,31 @@ public class Globais
 		static public boolean flWIFI = false;
 		static public String  senhaconf = "";
 		static public String  questao = "";
+		}
+	
+	static public AlertDialog dlgOKCancel( Context ctx, String titulo, String msg, String posit, String negat )
+		{
+		android.app.AlertDialog.Builder alertDialog = new android.app.AlertDialog.Builder( ctx );
+		alertDialog.setTitle( titulo );
+		alertDialog.setMessage( msg );
+		alertDialog.setCancelable( false );
+		alertDialog.setNegativeButton( negat, new DialogInterface.OnClickListener()
+			{
+			@Override
+			public void onClick( DialogInterface dialogInterface, int i )
+				{
+				Globais.alertResu = false;
+				}
+			} );
+		alertDialog.setPositiveButton( posit, new DialogInterface.OnClickListener()
+			{
+			@Override
+			public void onClick( DialogInterface dialogInterface, int i )
+				{
+				Globais.alertResu = true;
+				}
+			} );
+		return alertDialog.create();
 		}
 	
 	//  mensagem com OK & Cancel
@@ -566,10 +598,21 @@ public class Globais
 			{
 			PackageInfo pkInfo = ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0);
 			String novrs = pkInfo.versionName;
-			int nuvrs = pkInfo.versionCode;
+//			int nuvrs = pkInfo.versionCode;
 //			if( versaoDB <= config.vrsdb )
 //				return true;
-			
+			if( versaoDB > 500 )
+				versaoDB = 9;
+			if( versaoDB >= 10 && config.vrsdb < 10 )
+				{
+				fltran = true;
+				String alter = "ALTER TABLE mensagens ADD COLUMN " +
+					"msg_dtnotif TEXT";
+				db.execSQL( alter );
+				//
+				alter = "update mensagens set msg_dtnotif=msg_dtreceb";
+				db.execSQL( alter );
+				}
 			if( versaoDB >= 8 && config.vrsdb < 8 )
 				{
 				fltran = true;
@@ -597,7 +640,7 @@ public class Globais
 					"FROM dispositivoold ";
 				db.execSQL( alter );
 				//  altera o dado novo
-				alter = "UPDATE dispositivo SET dis_vrsapp='" + novrs + "' dis_vsrdb=" + nuvrs;
+				alter = "UPDATE dispositivo SET dis_vrsapp='" + novrs + "', dis_vsrdb=" + versaoDB;
 				db.execSQL( alter );
 				//
 				fltran = false;
@@ -624,11 +667,11 @@ public class Globais
 				db.execSQL( sql );
 				}
 			String sql = "UPDATE DISPOSITIVO SET " +
-				"dis_vrsdb=" + nuvrs + ", " +
+				"dis_vrsdb=" + versaoDB + ", " +
 				"dis_vrsapp='" + novrs + "'";
 			db.execSQL( sql );
 			config.vrsapp = novrs;
-			config.vrsdb = nuvrs;
+			config.vrsdb = versaoDB;
 			}
 		catch( Exception exc )
 			{
@@ -926,6 +969,7 @@ public class Globais
 		menu.add( 0, R.integer.mnidAddAlvo, ++order, R.string.mntxAddAlvo );
 		menu.add( 0, R.integer.mnidAjuda, ++order, R.string.mntxAjuda );
 		menu.add( 0, R.integer.mnidSetup, ++order, R.string.mntxSetup );
+		menu.add( 0, R.integer.mnidConfi, ++order, R.string.mntxConfi );
 		String idtel = nuSerial();
 		if( idtel != null )
 			{
@@ -1012,6 +1056,12 @@ public class Globais
 				Alerta( ctx, "Sem conexão", msg );
 				}
 			return;
+			}
+		
+		if( idmenu == R.integer.mnidConfi )
+			{
+			Intent setup = new Intent( ctx, ConfidenActivity.class );
+			ctx.startActivity( setup );
 			}
 		
 		if( idmenu == R.integer.mnidRemoveDB )

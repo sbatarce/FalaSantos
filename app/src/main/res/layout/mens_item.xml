@@ -14,7 +14,7 @@
     <ImageView
         android:id="@+id/imSttMens"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_weight="5"
         android:cropToPadding="false"
         android:src="@drawable/bola_verde"/>
@@ -22,10 +22,10 @@
     <TextView
         android:id="@+id/txTitulo"
         android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="50"
+        android:layout_height="40dp"
+        android:layout_weight="80"
         android:gravity="center_vertical"
-        android:text="AAAAAAAAAAAAAAA"
+        android:text="123456789012345678901234"
         android:textSize="18sp"
         android:textStyle="bold|italic"/>
 
@@ -33,9 +33,9 @@
         android:id="@+id/txDaEnvio"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="45"
+        android:layout_weight="15"
         android:gravity="right|center_vertical"
-        android:text="20/06/2017 10:44"
+        android:text="10:44"
         android:textColor="@android:color/holo_green_dark"
         android:textSize="14sp"/>
 

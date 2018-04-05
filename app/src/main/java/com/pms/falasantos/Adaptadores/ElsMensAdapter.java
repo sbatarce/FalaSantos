@@ -113,20 +113,16 @@ public class ElsMensAdapter extends BaseExpandableListAdapter
 			}
 
 		((TextView)view.findViewById( R.id.txTitulo )).setText( clmens.titulo );
-		((TextView)view.findViewById( R.id.txDaEnvio )).setText( clmens.dareceb );
+		((TextView)view.findViewById( R.id.txDaEnvio )).setText( clmens.danotif.substring( 11 ) );
 
-//		if( !clmens.flresp )
-//			{
-//			((TextView)view.findViewById( R.id.txMensagem )).setText( clmens.mensagem );
-//			return view;
-//			}
-			
+		String mens = "Recebimento:" + clmens.dareceb + " ";
 		if( clmens.daleitu == null || clmens.daleitu.equals( "" ) )
 			{
-			((TextView)view.findViewById( R.id.txMensagem )).setText( "toque para ler a mensagem" );
+			mens += "\ntoque para ler a mensagem";
+			((TextView)view.findViewById( R.id.txMensagem )).setText( mens );
 			return view;
 			}
-		String mens = "Leitura:" + clmens.daleitu + " ";
+		mens += "\nLeitura:" + clmens.daleitu + " ";
 		if( clmens.daresp == null || clmens.daresp.equals( "" ) )
 			{
 			if( clmens.flresp )

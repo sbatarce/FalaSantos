@@ -61,6 +61,7 @@ public class AlvosActivity extends AppCompatActivity implements RespostaConfig
 		getSupportActionBar().setDisplayOptions( ActionBar.DISPLAY_SHOW_CUSTOM );
 		getSupportActionBar().setDisplayShowCustomEnabled( true );
 		getSupportActionBar().setCustomView( R.layout.actbar );
+		getSupportActionBar().setDisplayHomeAsUpEnabled( true );
 		//
 		setuplist();
 		//
@@ -86,6 +87,11 @@ public class AlvosActivity extends AppCompatActivity implements RespostaConfig
 	public boolean onOptionsItemSelected( MenuItem item )
 		{
 		int id = item.getItemId();
+		if( id == android.R.id.home )
+			{
+			finish();
+			return true;
+			}
 		Globais.prcMenuItem( this, id );
 		return super.onOptionsItemSelected( item );
 		}

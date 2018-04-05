@@ -88,6 +88,9 @@ public class MainActivity extends AppCompatActivity implements RespostaConfig
 		setContentView( R.layout.activity_main );
 		Globais.atividade = Globais.Atividade.Main;
 		Globais.setContext( this );
+		//  prepara a lista de alvos
+		elsAlvos = (ExpandableListView) findViewById( R.id.elsAlvos );
+		setupList();
 		//  verifica SDK version
 		if( Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN )
 			{
@@ -148,9 +151,6 @@ public class MainActivity extends AppCompatActivity implements RespostaConfig
 				*/
 				}
 			}
-		//  prepara a lista de alvos
-		elsAlvos = (ExpandableListView) findViewById( R.id.elsAlvos );
-		setupList();
 		}
 	
 	@Override
@@ -388,7 +388,7 @@ public class MainActivity extends AppCompatActivity implements RespostaConfig
 				//  tratamento do remetente
 				if( rem == null )
 					{
-					rem = "Não há mensagens ainda";
+					rem = "";
 					}
 				if( idr != idrant )
 					{
@@ -417,13 +417,15 @@ public class MainActivity extends AppCompatActivity implements RespostaConfig
 					qtAlvALer = 0;
 					qtAlvTot = 0;
 					}
-				if( (dtlei.equals( "-" ) || dtlei.equals( "" )) && !rem.contains( "Não há mens" ) )
+				//if( !dtlei.equals( "-" ) && !dtlei.equals( "" ) )
+				if( dtlei.isEmpty() )
 					qtRemALer++;
 				qtRemTot++;
 				}
 			if( idrant != -1 )
 				{
-				lsrems.add( new clRems( idrant, remant, qtRemALer, qtRemTot ) );
+				if( !remant.equals( "" ))
+					lsrems.add( new clRems( idrant, remant, qtRemALer, qtRemTot ) );
 				qtAlvALer += qtRemALer;
 				}
 			if( !alvant.equals( "-" ) )

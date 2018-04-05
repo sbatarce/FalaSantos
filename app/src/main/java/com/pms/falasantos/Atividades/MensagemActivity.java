@@ -3,10 +3,12 @@ package com.pms.falasantos.Atividades;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -68,6 +70,11 @@ public class MensagemActivity extends AppCompatActivity implements View.OnClickL
 		Globais.atividade = Globais.Atividade.Mensagem;
 		Globais.setContext( this );
 		//
+		getSupportActionBar().setDisplayOptions( ActionBar.DISPLAY_SHOW_CUSTOM );
+		getSupportActionBar().setDisplayShowCustomEnabled( true );
+		getSupportActionBar().setCustomView( R.layout.actbar );
+		getSupportActionBar().setDisplayHomeAsUpEnabled( true );
+		//
 		Intent mensg = getIntent();
 		idmens = Integer.parseInt( mensg.getStringExtra( "idmens" ) );
 		titulo = mensg.getStringExtra( "titulo" );
@@ -81,6 +88,18 @@ public class MensagemActivity extends AppCompatActivity implements View.OnClickL
 		setupMens();
 		}
 	
+	@Override
+	public boolean onOptionsItemSelected( MenuItem item )
+		{
+		int id = item.getItemId();
+		if( id == android.R.id.home )
+			{
+			finish();
+			return true;
+			}
+		return true;
+		}
+
 	private boolean flback;
 	@Override
 	public void onBackPressed()

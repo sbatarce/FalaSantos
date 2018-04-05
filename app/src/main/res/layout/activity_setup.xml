@@ -37,7 +37,7 @@
 
   </RadioGroup>
 
-  <!-- layout contendo a parte comum: horários, uso de banda/wifi confidencialidade -->
+  <!-- layout uso de banda/wifi -->
   <LinearLayout
       android:id="@+id/llComum"
       android:layout_width="match_parent"
@@ -45,88 +45,12 @@
       android:layout_below="@id/rgEscUser"
       android:orientation="vertical">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-      <TextView
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:text="Horário de "/>
-
-      <EditText
-          android:id="@+id/txHrInic"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:inputType="time"
-          android:minWidth="50dp"
-          android:text="08:00"
-          android:textSize="14sp"/>
-
-      <TextView
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:text=" até "/>
-
-      <EditText
-          android:id="@+id/txHrFinal"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:inputType="time"
-          android:minWidth="50dp"
-          android:text="21:00"
-          android:textSize="14sp"/>
-
-    </LinearLayout>
-
     <CheckBox
         android:id="@+id/ckWIFI"
         android:layout_width="wrap_content"
         android:layout_height="20dp"
         android:textSize="14sp"
         android:text="Não usar a Banda do Celular (Só WIFI)"/>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-      <TextView
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:text="Pergunta mágica: "/>
-
-      <EditText
-          android:id="@+id/txQuestao"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:minWidth="150dp"
-          android:text=""
-          android:textSize="14sp"/>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-      <TextView
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:text="Senha Confidencial: "/>
-
-      <EditText
-          android:id="@+id/txSenhaConf"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:inputType="textPassword"
-          android:minWidth="100dp"
-          android:textSize="14sp"
-          android:text=""/>
-
-    </LinearLayout>
 
   </LinearLayout>
 

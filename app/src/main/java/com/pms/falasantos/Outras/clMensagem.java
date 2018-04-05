@@ -6,6 +6,7 @@ package com.pms.falasantos.Outras;
 public class clMensagem
 	{
 	public String  titulo;
+	public String  danotif;
 	public String  dareceb;
 	public String  daleitu;
 	public String  daresp;
@@ -14,9 +15,10 @@ public class clMensagem
 	public boolean flresp;      //  indica que a mensagem tem pelo menos 1 corpo com resposta
 	public boolean confidencial;      //  indica que a mensagem é confidencial
 	
-	public clMensagem( String titulo, String dareceb, String daleitu, String daresp, String mensagem, String idmens )
+	public clMensagem( String titulo, String danotif, String dareceb, String daleitu, String daresp, String mensagem, String idmens )
 		{
 		this.titulo = titulo;
+		this.danotif = danotif;
 		this.dareceb = dareceb;
 		this.daleitu = daleitu;
 		this.daresp = daresp;

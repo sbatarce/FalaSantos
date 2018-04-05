@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.support.annotation.IdRes;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -64,6 +65,11 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 		setContentView( R.layout.activity_setup );
 		Globais.atividade = Globais.Atividade.Setup;
 		Globais.setContext( this );
+		//
+		getSupportActionBar().setDisplayOptions( ActionBar.DISPLAY_SHOW_CUSTOM );
+		getSupportActionBar().setDisplayShowCustomEnabled( true );
+		getSupportActionBar().setCustomView( R.layout.actbar );
+		getSupportActionBar().setDisplayHomeAsUpEnabled( true );
 		//  prepara a visualização da tela
 		setRadioBT();
 		if( !Globais.obterConfig() )
@@ -84,11 +90,7 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 			//  ja fez o setup => deve ser alteração
 			Globais.obterConfig();
 			(findViewById( R.id.llComum )).setVisibility( View.VISIBLE );
-			((EditText) findViewById( R.id.txHrInic )).setText( Globais.config.hoini );
-			((EditText) findViewById( R.id.txHrFinal )).setText( Globais.config.hofim );
 			((CheckBox) findViewById( R.id.ckWIFI )).setChecked( Globais.config.flWIFI );
-			((EditText) findViewById( R.id.txQuestao )).setText( Globais.config.questao );
-			((EditText) findViewById( R.id.txSenhaConf )).setText( Globais.config.senhaconf );
 			
 			((EditText) findViewById( R.id.txNome )).setText( Globais.config.nome );
 			((EditText) findViewById( R.id.txDtNasc )).setText( Globais.config.dtnas );
@@ -107,6 +109,8 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 			else
 				{
 				((RadioButton) findViewById( R.id.rbMunic )).setChecked( false );
+				((RadioButton) findViewById( R.id.rbMunic )).setClickable( false );
+				((EditText) findViewById( R.id.txSSHD )).setEnabled( false );
 				((RadioButton) findViewById( R.id.rbFunc )).setChecked( true );
 				((LinearLayout) findViewById( R.id.llOptMuni )).setVisibility( View.INVISIBLE );
 				((LinearLayout) findViewById( R.id.llOptFunc )).setVisibility( View.VISIBLE );
@@ -116,8 +120,6 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 			{
 			((RadioButton) findViewById( R.id.rbFunc )).setChecked( false );
 			((RadioButton) findViewById( R.id.rbMunic )).setChecked( true );
-			((EditText) findViewById( R.id.txQuestao )).setText( "" );
-			((EditText) findViewById( R.id.txSenhaConf )).setText( "" );
 			
 			((EditText) findViewById( R.id.txNome )).setText( "" );
 			((EditText) findViewById( R.id.txDtNasc )).setText( "" );
@@ -138,13 +140,20 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 		getMenuInflater().inflate( R.menu.menu_main, menu );
 		return true;
 		}
+	
 	@Override
 	public boolean onOptionsItemSelected( MenuItem item )
 		{
 		int id = item.getItemId();
+		if( id == android.R.id.home )
+			{
+			finish();
+			return true;
+			}
 		Globais.prcMenuItem( this, id );
 		return super.onOptionsItemSelected( item );
 		}
+	
 	@Override
 	protected void onResume()
 		{
@@ -227,18 +236,6 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 			else
 				flwifi = false;
 			
-			questao = ((EditText) findViewById( R.id.txQuestao )).getText().toString();
-			senhaconf = ((EditText) findViewById( R.id.txSenhaConf )).getText().toString();
-			if( (questao == null && senhaconf != null) ||
-				(questao != null && senhaconf == null) )
-				{
-				String msg = "Os campos \"Pergunta mágica\" e \"Senha Confidencial\" não " +
-					"são obrigatórios, porém devem ser fornecidos ou omitidos em conjunto, " +
-					"isto é, preencha ou omita os dois.";
-				Globais.Alerta( this, "Por favor, corrija.", msg );
-				return;
-				}
-
 			//  funcionários ou munícipes
 			if( ((RadioButton) findViewById( R.id.rbFunc )).isChecked() )
 				{
@@ -393,19 +390,24 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 				if( erro.contains( "01017" ) )
 					Globais.Alerta( this, "Acesso negado", "SSHD e/ou senha não corretos" );
 				else
-					Globais.Alerta( this, "Resposta do servidor com erro (1)", erro );
+					Globais.Alerta( this, "Por favor, tente mais tarde! (1)",
+				                "O acesso aos dados apresentou um problema.\n" +
+					                "Pode estar passando por dificuldades no momento.\n" );
 				return;
 				}
 			if( !jobj.has( "status" ) )
 				{
-				Globais.Alerta( this, "Resposta do servidor com erro (2)",
-				                "Resposta sem indicativo de estado" );
+				Globais.Alerta( this, "Por favor, tente mais tarde! (2)",
+				                "O acesso aos dados apresentou um problema.\n" +
+					                "Pode estar passando por dificuldades no momento.\n" );
 				return;
 				}
 			if( !jobj.getString( "status" ).equals( "OK" ) && !jobj.getString( "status" ).equals( "ok" ) )
 				{
 				String status = jobj.getString( "status" );
-				Globais.Alerta( this, "Resposta do servidor com erro (3)", status );
+				Globais.Alerta( this, "Por favor, tente mais tarde! (3)",
+				                "O acesso aos dados apresentou um problema.\n" +
+					                "Pode estar passando por dificuldades no momento.\n" );
 				return;
 				}
 			//  processamento de cada estado
@@ -414,8 +416,9 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 				case cadmunicipe:
 					if( !jobj.has( "id" ) )
 						{
-						Globais.Alerta( this, "Resposta do servidor com erro (4)",
-						                "Resposta sem indicativo do ID" );
+						Globais.Alerta( this, "Por favor, tente mais tarde! (4)",
+						                "O acesso aos dados apresentou um problema.\n" +
+							                "Pode estar passando por dificuldades no momento.\n" );
 						return;
 						}
 					desid = jobj.getInt( "id" );
@@ -426,8 +429,9 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 				case cadfuncionario:
 					if( !jobj.has( "id" ) )
 						{
-						Globais.Alerta( this, "Resposta do servidor com erro (5)",
-						                "Resposta sem indicativo do ID" );
+						Globais.Alerta( this, "Por favor, tente mais tarde! (5)",
+						                "O acesso aos dados apresentou um problema.\n" +
+							                "Pode estar passando por dificuldades no momento." );
 						return;
 						}
 					desid = jobj.getInt( "id" );
@@ -495,8 +499,6 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 					else
 						cv.put( "dis_flwifi", 0 );
 					cv.put( "dis_flsilen", 0 );
-					cv.put( "dis_frase", questao );
-					cv.put( "dis_senha", senhaconf );
 					try
 						{
 						int ret = Globais.db.update( "dispositivo", cv, null, null );
@@ -601,6 +603,12 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 	private void configura()
 		{
 		ContentValues cv = new ContentValues( 10 );
+		
+		while( cpf.length() < 11 )
+			{
+			String aux = cpf;
+			cpf = "0"+aux;
+			}
 		
 		cv.put( "des_id", desid );
 		cv.put( "des_sshd", sshd );

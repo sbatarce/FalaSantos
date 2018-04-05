@@ -6,8 +6,8 @@ android {
     applicationId "com.pms.falasantos"
     minSdkVersion 17
     targetSdkVersion 25
-    versionCode 109
-    versionName '1.0.9'
+    versionCode 1014
+    versionName '1.0.14'
     testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
   }
   buildTypes {
@@ -31,12 +31,5 @@ dependencies {
   compile 'com.google.firebase:firebase-messaging:10.0.1'
   testCompile 'junit:junit:4.12'
 }
-
-
-
-
-
-
-
 
 apply plugin: 'com.google.gms.google-services'

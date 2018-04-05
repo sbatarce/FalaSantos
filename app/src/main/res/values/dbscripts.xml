@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <integer name="dbvers">9</integer>
-  <integer name="appvers">103</integer>
+  <integer name="dbvers">10</integer>
+  <integer name="appvers">1010</integer>
   <!--
    >  Os campos xxx_flatua indicam que o segmento sofreu alteração e portanto
       deverão ser enviados ao servidor assim que houver condições
@@ -59,6 +59,7 @@
       msg_msaid     INTEGER,
       msg_timsg     INTEGER,
       msg_titulo    TEXT,
+      msg_dtnotif   TEXT,
       msg_dtreceb   TEXT,
       msg_dtleitu   TEXT,
       msg_dtresp    TEXT,

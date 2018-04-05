@@ -53,6 +53,8 @@ public class MensagensActivity extends AppCompatActivity implements RespostaConf
 	ExpandableListView expview;
 	HashMap<String, List<clMensagem>> lista = new HashMap<>();
 	
+	int ulGrEspan = -1;
+	
 	private int posData = -1;
 	private int posMens = -1;
 	private int msaid = -1;
@@ -117,7 +119,11 @@ public class MensagensActivity extends AppCompatActivity implements RespostaConf
 	public boolean onOptionsItemSelected( MenuItem item )
 		{
 		int id = item.getItemId();
-		
+		if( id == android.R.id.home )
+			{
+			finish();
+			return true;
+			}
 		Globais.prcMenuItem( this, id );
 		return super.onOptionsItemSelected( item );
 		}
@@ -138,6 +144,7 @@ public class MensagensActivity extends AppCompatActivity implements RespostaConf
 		getSupportActionBar().setDisplayOptions( ActionBar.DISPLAY_SHOW_CUSTOM );
 		getSupportActionBar().setDisplayShowCustomEnabled( true );
 		getSupportActionBar().setCustomView( R.layout.actbar );
+		getSupportActionBar().setDisplayHomeAsUpEnabled( true );
 		//
 		((TextView) findViewById( R.id.txMsgPerfil )).setText( "Alvo: " + noalvo );
 		((TextView) findViewById( R.id.txMsgOrig )).setText( "Remetente: " + noreme );
@@ -146,6 +153,8 @@ public class MensagensActivity extends AppCompatActivity implements RespostaConf
 		idmsgar.clear();
 		//
 		ixnld = -1;
+		Globais.mensPosic.grPos = -1;
+		Globais.mensPosic.chPos = -1;
 		setupList();
 		obterMensg();
 		Globais.setSemUso();
@@ -193,6 +202,7 @@ public class MensagensActivity extends AppCompatActivity implements RespostaConf
 
 	private void setupList()
 		{
+		//  prepara um alert para impedir deleções indesejadas
 		final android.app.AlertDialog.Builder confDelete =
 			new android.app.AlertDialog.Builder( MensagensActivity.this );
 		confDelete.setTitle( "Atenção! Isto não poderá ser desfeito" );
@@ -214,13 +224,26 @@ public class MensagensActivity extends AppCompatActivity implements RespostaConf
 				remoMens(  );
 				}
 			} );
-		
+		//
+		expview.setOnGroupExpandListener( new ExpandableListView.OnGroupExpandListener(){
+		@Override
+		public void onGroupExpand( int groupPosition )
+			{
+			if( ulGrEspan >= 0 &&
+					ulGrEspan != groupPosition )
+				expview.collapseGroup( ulGrEspan );
+			ulGrEspan = groupPosition;
+			}
+		} );
+		//  click no child
 		expview.setOnChildClickListener( new ExpandableListView.OnChildClickListener()
 			{
 			@Override
 			public boolean onChildClick( ExpandableListView parent, View v, int groupPosition, int childPosition, long id )
 				{
 				clMensagem clm = (clMensagem) msgadapter.getChild( groupPosition, childPosition );
+				Globais.mensPosic.grPos = groupPosition;
+				Globais.mensPosic.chPos = childPosition;
 				if( clm.daleitu == null )
 					{
 					String sql = "UPDATE mensagens SET msg_dtLeitu='" + Globais.agoraDB() +
@@ -242,7 +265,7 @@ public class MensagensActivity extends AppCompatActivity implements RespostaConf
 				return true;
 				}
 			} );
-		
+		//  long click no child
 		expview.setOnItemLongClickListener( new ExpandableListView.OnItemLongClickListener()
 			{
 			@Override
@@ -308,7 +331,7 @@ public class MensagensActivity extends AppCompatActivity implements RespostaConf
 		idmsgar.clear();
 		//  obtem as mensagens do destinatário em ordem decrescente de data
 		String sql =
-			"select msg.msg_id, msg_msaid, msg_titulo, msg_dtreceb, " +
+			"select msg.msg_id, msg_msaid, msg_titulo, msg_dtnotif, msg_dtreceb, " +
 				"     case  " +
 				"       when msg.msg_dtleitu is null then '' " +
 				"       else msg.msg_dtleitu " +
@@ -323,12 +346,13 @@ public class MensagensActivity extends AppCompatActivity implements RespostaConf
 				"            cor.msg_id=msg.msg_id " +
 				" where      msg.rem_id=" + idreme +
 				" ORDER BY msg_dtreceb desc, cor.cor_id";
+		String dtnot = "";
 		String dtrec = "";
 		String dtlei = "";
 		String dtres = "";
 		int idmsg;
 
-		String dtrecant = "-";
+		String dtnotant = "-";
 		String titulo = null;
 		String texto;
 		int idmsgant = -1;
@@ -347,6 +371,7 @@ public class MensagensActivity extends AppCompatActivity implements RespostaConf
 						clMensagem clmens = new clMensagem
 							(
 							titulo,
+							Globais.toHumanDt( dtnot ),
 							Globais.toHumanDt( dtrec ),
 							Globais.toHumanDt( dtlei ),
 							Globais.toHumanDt( dtres ),
@@ -363,7 +388,10 @@ public class MensagensActivity extends AppCompatActivity implements RespostaConf
 					idmsgant = idmsg;
 					corpo = "";
 					}
+				dtnot = curmsg.getString( curmsg.getColumnIndex( "msg_dtnotif" ) );
 				dtrec = curmsg.getString( curmsg.getColumnIndex( "msg_dtreceb" ) );
+				if( dtnot.isEmpty() )
+					dtnot = dtrec;
 				dtlei = curmsg.getString( curmsg.getColumnIndex( "msg_dtleitu" ) );
 				dtres = curmsg.getString( curmsg.getColumnIndex( "msg_dtresp" ) );
 				titulo = curmsg.getString( curmsg.getColumnIndex( "msg_titulo" ) );
@@ -371,16 +399,16 @@ public class MensagensActivity extends AppCompatActivity implements RespostaConf
 				if( corpo.length() > 0 )
 					corpo += "\n";
 				corpo += texto;
-				if( !dtrec.substring( 0, 8 ).equals( dtrecant ) )
+				if( !dtrec.substring( 0, 8 ).equals( dtnotant ) )
 					{
 					if( lsmens.size() > 0 )
 						{
-						lista.put( Globais.toHumanDt( dtrecant ), lsmens );
-						lstitulo.add( Globais.toHumanDt( dtrecant ) );
+						lista.put( Globais.toHumanDt( dtnotant ), lsmens );
+						lstitulo.add( Globais.toHumanDt( dtnotant ) );
 						lido.add( fllida );
 						lsmens = new ArrayList<>();
 						}
-					dtrecant = dtrec.substring( 0, 8 );
+					dtnotant = dtnot.substring( 0, 8 );
 					fllida = false;
 					}
 				if( dtlei != null )
@@ -393,6 +421,7 @@ public class MensagensActivity extends AppCompatActivity implements RespostaConf
 				clMensagem clmens = new clMensagem
 					(
 					titulo,
+					Globais.toHumanDt( dtnot ),
 					Globais.toHumanDt( dtrec ),
 					Globais.toHumanDt( dtlei ),
 					Globais.toHumanDt( dtres ),
@@ -420,17 +449,20 @@ public class MensagensActivity extends AppCompatActivity implements RespostaConf
 			}
 		if( lsmens.size() > 0 )
 			{
-			lista.put( Globais.toHumanDt( dtrecant ), lsmens );
-			lstitulo.add( Globais.toHumanDt( dtrecant ) );
+			lista.put( Globais.toHumanDt( dtnotant ), lsmens );
+			lstitulo.add( Globais.toHumanDt( dtnotant ) );
 			lido.add( fllida );
 			}
 		msgadapter = new ElsMensAdapter( this, lstitulo, lista );
 		expview.setAdapter( msgadapter );
-		for( int ix = 0; ix < lido.size(); ix++ )
+		if( Globais.mensPosic.grPos >= 0 )
 			{
-			if( !lido.get( ix ) )
-				expview.expandGroup( ix );
+			expview.expandGroup( Globais.mensPosic.grPos );
+			ulGrEspan = Globais.mensPosic.grPos;
 			}
+		else
+			ulGrEspan = -1;
+		
 		Globais.semNovidades();
 		hdl.postDelayed( atualiza, delay );
 		return true;

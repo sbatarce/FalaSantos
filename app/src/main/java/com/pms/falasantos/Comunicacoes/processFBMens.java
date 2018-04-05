@@ -290,6 +290,8 @@ public class processFBMens implements RespostaConfig
 	//
 	public boolean mandaRespostas()
 		{
+		if( Globais.db == null )
+			return false;
 		if( !Globais.isConnected() )
 			return false;
 		String jresp = montaResposta();
@@ -330,19 +332,27 @@ public class processFBMens implements RespostaConfig
 				if( erro.contains( "01017" ) )
 					Globais.Alerta( ctx, "Acesso negado", "SSHD e/ou senha não corretos" );
 				else
-					Globais.Alerta( ctx, "Resposta do servidor com erro (6)", erro );
+					{
+					Globais.Alerta( ctx, "Por favor, tente mais tarde! (6)",
+					                "O acesso aos dados apresentou um problema.\n" +
+					              "Pode estar passando por dificuldades no momento.\n" );
+					Log.d( Globais.apptag, "Erro do servidor(6): " + erro );
+					}
 				return;
 				}
 			if( !jobj.has( "status" ) )
 				{
-				Globais.Alerta( ctx, "Resposta do servidor com erro (7)",
-				                "Resposta sem indicativo de estado" );
+				Globais.Alerta( ctx, "Por favor, tente mais tarde! (7)",
+				                "O acesso aos dados apresentou um problema.\n" +
+					                "Pode estar passando por dificuldades no momento.\n" );
 				return;
 				}
 			if( !jobj.getString( "status" ).equals( "OK" ) && !jobj.getString( "status" ).equals( "ok" ) )
 				{
 				String status = jobj.getString( "status" );
-				Globais.Alerta( ctx, "Resposta do servidor com erro (8)", status );
+				Globais.Alerta( ctx, "Por favor, tente mais tarde! (8)",
+				                "O acesso aos dados apresentou um problema.\n" +
+					                "Pode estar passando por dificuldades no momento.\n" );
 				return;
 				}
 			//  processamento de cada estado
@@ -351,8 +361,9 @@ public class processFBMens implements RespostaConfig
 				case obtmens:
 					if( !jobj.has( "quantidade" ) )
 						{
-						Globais.Alerta( ctx, "Resposta do servidor com erro (9)",
-						                "Resposta sem indicativo de quantidade de mensagens" );
+						Globais.Alerta( ctx, "Por favor, tente mais tarde! (9)",
+						                "O acesso aos dados apresentou um problema.\n" +
+							                "Pode estar passando por dificuldades no momento.\n" );
 						return;
 						}
 					int qtmsg = jobj.getInt( "quantidade" );
@@ -360,8 +371,9 @@ public class processFBMens implements RespostaConfig
 						return;
 					if( !jobj.has( "mensagens") )
 						{
-						Globais.Alerta( ctx, "Resposta do servidor com erro",
-						                "Resposta sem lista de mensagens" );
+						Globais.Alerta( ctx, "Por favor, tente mais tarde! (10)",
+						                "O acesso aos dados apresentou um problema.\n" +
+							                "Pode estar passando por dificuldades no momento.\n" );
 						return;
 						}
 					JSONArray mensgs = jobj.getJSONArray( "mensagens" );
@@ -374,6 +386,7 @@ public class processFBMens implements RespostaConfig
 						String titulo = mensg.getString( "titulo" );
 						String sshd = mensg.getString( "sshd" );
 						String remet = mensg.getString( "remetente" );
+						String notif = mensg.getString( "dtnoti" );
 						if( lista.length() > 0 )
 							lista += ",";
 						lista += ""+idmsa;
@@ -384,6 +397,7 @@ public class processFBMens implements RespostaConfig
 						cv.put( "rem_id", ixrem );
 						cv.put( "msg_msaid", idmsa );
 						cv.put( "msg_titulo", titulo );
+						cv.put( "msg_dtnotif", notif );
 						cv.put( "msg_dtreceb", Globais.agoraDB() );
 						cv.put( "msg_dtleitu", "" );
 						cv.put( "msg_dtresp", "" );

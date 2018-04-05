@@ -17,6 +17,7 @@ import android.text.InputFilter;
 import android.text.InputType;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -38,7 +39,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.URLEncoder;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig, View.OnClickListener
 	{
@@ -75,6 +79,7 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 		getSupportActionBar().setDisplayOptions( ActionBar.DISPLAY_SHOW_CUSTOM );
 		getSupportActionBar().setDisplayShowCustomEnabled( true );
 		getSupportActionBar().setCustomView( R.layout.actbar );
+		getSupportActionBar().setDisplayHomeAsUpEnabled( true );
 		//  obtem o alvo e monta a tela dinamica
 		clalvo = Globais.getClalvo();
 		area = clalvo.area;
@@ -107,10 +112,12 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 				if( cmp.tipo != 30 && cmp.tipo != 31 && cmp.tipo != 32 && cmp.tipo != 40 )
 					{
 					llp = new LinearLayout.LayoutParams(
-						LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 30f );
+						LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 50f );
 					titCmp = new TextView( this );
 					titCmp.setText( cmp.nome );
 					titCmp.setWidth( 0 );
+					titCmp.setMinLines( 2 );
+					titCmp.setMinHeight( 70 );
 					titCmp.setLayoutParams( llp );
 					ll.addView( titCmp );
 					}
@@ -121,12 +128,14 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 						edtx = new EditText( this );
 						edtx.setId( id );
 						llp = new LinearLayout.LayoutParams( LinearLayout.LayoutParams.WRAP_CONTENT,
-						                                     LinearLayout.LayoutParams.WRAP_CONTENT, 70f );
+						                                     LinearLayout.LayoutParams.WRAP_CONTENT, 50f );
 						edtx.setLayoutParams( llp );
 						edtx.setWidth( 0 );
 						edtx.setInputType( InputType.TYPE_CLASS_TEXT );
 						if( cmp.tamax > 0 )
 							edtx.setFilters( new InputFilter[]{ new InputFilter.LengthFilter( cmp.tamax ) } );
+						else
+							edtx.setFilters( new InputFilter[]{ new InputFilter.LengthFilter( 256 ) } );
 						ll.addView( edtx );
 						break;
 					case 2:     //  número
@@ -134,81 +143,93 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 						edtx = new EditText( this );
 						edtx.setId( id );
 						llp = new LinearLayout.LayoutParams( LinearLayout.LayoutParams.WRAP_CONTENT,
-						                                     LinearLayout.LayoutParams.WRAP_CONTENT, 70f );
+						                                     LinearLayout.LayoutParams.WRAP_CONTENT, 50f );
 						edtx.setLayoutParams( llp );
 						edtx.setWidth( 0 );
 						edtx.setInputType( InputType.TYPE_CLASS_TEXT | InputType.TYPE_CLASS_NUMBER );
 						if( cmp.tamax > 0 )
 							edtx.setFilters( new InputFilter[]{ new InputFilter.LengthFilter( cmp.tamax ) } );
+						else
+							edtx.setFilters( new InputFilter[]{ new InputFilter.LengthFilter( 64 ) } );
 						ll.addView( edtx );
 						break;
 					case 3:     //  número com sinal
 						edtx = new EditText( this );
 						edtx.setId( id );
 						llp = new LinearLayout.LayoutParams( LinearLayout.LayoutParams.WRAP_CONTENT,
-						                                     LinearLayout.LayoutParams.WRAP_CONTENT, 70f );
+						                                     LinearLayout.LayoutParams.WRAP_CONTENT, 50f );
 						edtx.setLayoutParams( llp );
 						edtx.setWidth( 0 );
 						edtx.setInputType( InputType.TYPE_CLASS_TEXT | InputType.TYPE_NUMBER_FLAG_SIGNED );
 						if( cmp.tamax > 0 )
 							edtx.setFilters( new InputFilter[]{ new InputFilter.LengthFilter( cmp.tamax ) } );
+						else
+							edtx.setFilters( new InputFilter[]{ new InputFilter.LengthFilter( 64 ) } );
 						ll.addView( edtx );
 						break;
 					case 4:     //  senha
 						edtx = new EditText( this );
 						edtx.setId( id );
 						llp = new LinearLayout.LayoutParams( LinearLayout.LayoutParams.WRAP_CONTENT,
-						                                     LinearLayout.LayoutParams.WRAP_CONTENT, 70f );
+						                                     LinearLayout.LayoutParams.WRAP_CONTENT, 50f );
 						edtx.setLayoutParams( llp );
 						edtx.setWidth( 0 );
 						edtx.setInputType( InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD );
 						if( cmp.tamax > 0 )
 							edtx.setFilters( new InputFilter[]{ new InputFilter.LengthFilter( cmp.tamax ) } );
+						else
+							edtx.setFilters( new InputFilter[]{ new InputFilter.LengthFilter( 64 ) } );
 						ll.addView( edtx );
 						break;
 					case 5:     //  senha numérica
 						edtx = new EditText( this );
 						edtx.setId( id );
 						llp = new LinearLayout.LayoutParams( LinearLayout.LayoutParams.WRAP_CONTENT,
-						                                     LinearLayout.LayoutParams.WRAP_CONTENT, 70f );
+						                                     LinearLayout.LayoutParams.WRAP_CONTENT, 50f );
 						edtx.setLayoutParams( llp );
 						edtx.setWidth( 0 );
 						edtx.setInputType(
 							InputType.TYPE_CLASS_TEXT | InputType.TYPE_NUMBER_VARIATION_PASSWORD );
 						if( cmp.tamax > 0 )
 							edtx.setFilters( new InputFilter[]{ new InputFilter.LengthFilter( cmp.tamax ) } );
+						else
+							edtx.setFilters( new InputFilter[]{ new InputFilter.LengthFilter( 64 ) } );
 						ll.addView( edtx );
 						break;
 					case 6:     //  telefone
 						edtx = new EditText( this );
 						edtx.setId( id );
 						llp = new LinearLayout.LayoutParams( LinearLayout.LayoutParams.WRAP_CONTENT,
-						                                     LinearLayout.LayoutParams.WRAP_CONTENT, 70f );
+						                                     LinearLayout.LayoutParams.WRAP_CONTENT, 50f );
 						edtx.setLayoutParams( llp );
 						edtx.setWidth( 0 );
 						edtx.setInputType( InputType.TYPE_CLASS_TEXT | InputType.TYPE_CLASS_PHONE );
 						if( cmp.tamax > 0 )
 							edtx.setFilters( new InputFilter[]{ new InputFilter.LengthFilter( cmp.tamax ) } );
+						else
+							edtx.setFilters( new InputFilter[]{ new InputFilter.LengthFilter( 64 ) } );
 						ll.addView( edtx );
 						break;
 					case 7:     //  e-mail
 						edtx = new EditText( this );
 						edtx.setId( id );
 						llp = new LinearLayout.LayoutParams( LinearLayout.LayoutParams.WRAP_CONTENT,
-						                                     LinearLayout.LayoutParams.WRAP_CONTENT, 70f );
+						                                     LinearLayout.LayoutParams.WRAP_CONTENT, 50f );
 						edtx.setLayoutParams( llp );
 						edtx.setWidth( 0 );
 						edtx.setInputType(
 							InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS );
 						if( cmp.tamax > 0 )
 							edtx.setFilters( new InputFilter[]{ new InputFilter.LengthFilter( cmp.tamax ) } );
+						else
+							edtx.setFilters( new InputFilter[]{ new InputFilter.LengthFilter( 128 ) } );
 						ll.addView( edtx );
 						break;
 					case 21:     //  CEP
 						edtx = new EditText( this );
 						edtx.setId( id );
 						llp = new LinearLayout.LayoutParams( LinearLayout.LayoutParams.WRAP_CONTENT,
-						                                     LinearLayout.LayoutParams.WRAP_CONTENT, 70f );
+						                                     LinearLayout.LayoutParams.WRAP_CONTENT, 50f );
 						edtx.setLayoutParams( llp );
 						edtx.setWidth( 0 );
 						edtx.setInputType( InputType.TYPE_CLASS_TEXT | InputType.TYPE_CLASS_NUMBER );
@@ -219,22 +240,24 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 						edtx = new EditText( this );
 						edtx.setId( id );
 						llp = new LinearLayout.LayoutParams( LinearLayout.LayoutParams.WRAP_CONTENT,
-						                                     LinearLayout.LayoutParams.WRAP_CONTENT, 70f );
+						                                     LinearLayout.LayoutParams.WRAP_CONTENT, 50f );
 						edtx.setLayoutParams( llp );
 						edtx.setWidth( 0 );
 						edtx.setInputType(
 							InputType.TYPE_CLASS_DATETIME | InputType.TYPE_DATETIME_VARIATION_TIME );
+						edtx.setFilters( new InputFilter[]{ new InputFilter.LengthFilter( 12 ) } );
 						ll.addView( edtx );
 						break;
 					case 23:     //  data
 						edtx = new EditText( this );
 						edtx.setId( id );
 						llp = new LinearLayout.LayoutParams( LinearLayout.LayoutParams.WRAP_CONTENT,
-						                                     LinearLayout.LayoutParams.WRAP_CONTENT, 70f );
+						                                     LinearLayout.LayoutParams.WRAP_CONTENT, 50f );
 						edtx.setLayoutParams( llp );
-						edtx.setWidth( 0 );
+						edtx.setWidth( 10 );
 						edtx.setInputType(
 							InputType.TYPE_CLASS_DATETIME | InputType.TYPE_DATETIME_VARIATION_DATE );
+						edtx.setFilters( new InputFilter[]{ new InputFilter.LengthFilter( 10 ) } );
 						ll.addView( edtx );
 						break;
 					case 30:     //  box
@@ -281,7 +304,7 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 							edtx = new EditText( this );
 							edtx.setId( id );
 							llp = new LinearLayout.LayoutParams( LinearLayout.LayoutParams.WRAP_CONTENT,
-							                                     LinearLayout.LayoutParams.WRAP_CONTENT, 70f );
+							                                     LinearLayout.LayoutParams.WRAP_CONTENT, 50f );
 							edtx.setLayoutParams( llp );
 							edtx.setWidth( 8 );
 							edtx.setText( Globais.config.sshd );
@@ -289,6 +312,8 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 							edtx.setInputType( InputType.TYPE_CLASS_TEXT );
 							if( cmp.tamax > 0 )
 								edtx.setFilters( new InputFilter[]{ new InputFilter.LengthFilter( cmp.tamax ) } );
+							else
+								edtx.setFilters( new InputFilter[]{ new InputFilter.LengthFilter( 8 ) } );
 							ll.addView( edtx );
 							}
 						else
@@ -302,6 +327,7 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 							titCmp = new TextView( this );
 							titCmp.setText( msg );
 							titCmp.setWidth( 0 );
+							titCmp.setMinLines( 2 );
 							titCmp.setLayoutParams( llp );
 							ll.addView( titCmp );
 							ok = false;
@@ -392,7 +418,6 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 					case 7:
 					case 21:
 					case 22:
-					case 23:
 					case 40:
 						edtx = (EditText) findViewById( id );
 						if( edtx.getText().toString().length() > 0 )
@@ -407,6 +432,56 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 							}
 						break;
 					
+					case 23:
+						edtx = (EditText) findViewById( id );
+						String vedtx = edtx.getText().toString();
+						if( vedtx.length() < 1 )
+							{
+							Globais.Alerta( this, "Atenção", "Todos os campos são obrigatórios" );
+							return;
+							}
+						if( vedtx.length() != 8 &&
+							vedtx.length() != 10 )
+							{
+							Globais.Alerta( this, "Data inválida",
+							                "Deve ser no formato DDMMAAAA ou DD/MM/AAAA" );
+							return;
+							}
+						Date date = null;
+						SimpleDateFormat sdf;
+						if( vedtx.length() == 8 )
+							{
+							sdf = new SimpleDateFormat( "ddmmyyyy" );
+							try
+								{
+								date = sdf.parse( vedtx );
+								}
+							catch(ParseException pexc )
+								{
+								Globais.Alerta( this, "Data inválida",
+								                "Deve ser no formato DDMMAAAA ou DD/MM/AAAA" );
+								return;
+								}
+							}
+						if( vedtx.length() == 10 )
+							{
+							sdf = new SimpleDateFormat( "dd/mm/yyyy" );
+							try
+								{
+								date = sdf.parse( vedtx );
+								}
+							catch(ParseException pexc )
+								{
+								Globais.Alerta( this, "Data inválida",
+								                "Deve ser no formato DDMMAAAA ou DD/MM/AAAA" );
+								return;
+								}
+							}
+						sdf = new SimpleDateFormat( "dd/mm/yyyy" );
+						body += "\"" + cmp.campo + "\": \"";
+						body += sdf.format( date ) + "\"";
+						break;
+						
 					case 30:
 						Spinner cbbx = (Spinner) findViewById( id );
 						if( cbbx.getSelectedItem().toString().length() > 0 )
@@ -448,6 +523,19 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 			finish();
 			}
 		}
+
+	@Override
+	public boolean onOptionsItemSelected( MenuItem item )
+		{
+		int id = item.getItemId();
+		if( id == android.R.id.home )
+			{
+			finish();
+			return true;
+			}
+		return true;
+		}
+
 	@Override
 	public void Resposta( String resposta )
 		{

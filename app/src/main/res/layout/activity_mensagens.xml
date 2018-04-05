@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:weightSum="100"
+    android:layout_marginLeft="5dp"
+    android:layout_marginRight="5dp"
     tools:context="com.pms.falasantos.Atividades.MensagensActivity">
 
   <LinearLayout
@@ -15,6 +16,8 @@
       android:weightSum="10"
       android:layout_weight="10"
       android:background="@drawable/bordaarred"
+      android:layout_marginTop="5dp"
+      android:layout_marginBottom="5dp"
       android:orientation="vertical">
 
     <TextView
