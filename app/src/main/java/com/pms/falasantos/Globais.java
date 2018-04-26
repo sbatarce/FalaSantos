@@ -33,6 +33,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.Normalizer;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -66,6 +69,8 @@ public class Globais
 	
 	static private Boolean emuso = false;
 	static private Boolean semaf = false;
+	static public Boolean flfim = false;
+	static public boolean fldebug = false;
 	
 	static public long delayRefresh = 1800000;
 	static public boolean flatua = false;
@@ -151,7 +156,7 @@ public class Globais
 		return alertDialog.create();
 		}
 	
-	//  mensagem com OK & Cancel
+	//  mensagem com OK & Cancelar
 	static public void AlertaOKCancel( Context ctx, String titulo, String msg, String posit, String negat )
 		{
 		android.app.AlertDialog.Builder alertDialog = new android.app.AlertDialog.Builder( ctx );
@@ -390,7 +395,6 @@ public class Globais
 			}
 		else
 			Log.i( apptag, "setWifi desconectou ");
-		
 		return;
 		}
 	
@@ -755,7 +759,23 @@ public class Globais
 		catch( Exception exc )
 			{
 			Log.i( apptag, "erro obtendo config: " + exc.getMessage() );
-				
+			}
+		return true;
+		}
+	
+	//  validação de nome
+	public static boolean isAlfa( String txt )
+		{
+		String norm = Normalizer.normalize( txt, Normalizer.Form.NFD ).replaceAll( "[^\\p{ASCII}]", "" );
+		if( norm.length() != txt.length() )
+			return false;
+		for( int ix=0; ix<norm.length(); ix++ )
+			{
+			if( norm.charAt( ix ) == ' ' )
+				continue;
+			if( Character.isLetter( norm.charAt( ix ) ) )
+				continue;
+			return false;
 			}
 		return true;
 		}
@@ -818,28 +838,48 @@ public class Globais
 		
 		return true;
 		}
-	//  converte string dd/mm/aaaa para date
+	//  retorna uma data no formato legivel
+	//    'd'   DD/MM/YYYY
+	//    'dt' DD/MM/YYY HH:MM
+	//    't'  HH:MM
+	public static String stData( Date date, String fmt )
+		{
+		SimpleDateFormat sdf = null;
+		switch(fmt)
+			{
+			case "d":
+				sdf = new SimpleDateFormat( "dd/MM/yyyy" );
+				break;
+			case "t":
+				sdf = new SimpleDateFormat( "HH:mm" );
+				break;
+			case "dt":
+				sdf = new SimpleDateFormat( "dd/MM/yyyy HH:mm" );
+				break;
+			}
+		return sdf.format( date );
+		}
+	//  converte string dd/mm/aaaa ou ddmmaaaa para date
 	public static Date toDate( String data )
 		{
-		String[] strdt = data.split( "/" );
-		if( strdt.length != 3 )
+		if( data.length() != 8 && data.length() != 10 )
 			return null;
+		SimpleDateFormat sdf;
+		Date date;
+		if( data.length() == 8 )
+			sdf = new SimpleDateFormat( "ddMMyyyy" );
+		else
+			sdf = new SimpleDateFormat( "dd/MM/yyyy" );
+		sdf.setLenient( false );
 		try
 			{
-			int dia = Integer.parseInt( strdt[0] );
-			int mes = Integer.parseInt( strdt[1] );
-			int ano = Integer.parseInt( strdt[2] );
-			Date res = new Date( ano - 1900, mes - 1, dia );
-			if( res.getMonth() != mes - 1 )
-				return null;
-			if( res.getYear() != ano - 1900 )
-				return null;
-			return res;
+			date = sdf.parse( data );
 			}
-		catch( Exception exc )
+		catch(ParseException pexc )
 			{
 			return null;
 			}
+		return date;
 		}
 	
 	//  de AAAAMMDDHHMM => DD/MM/AAAA HH:MM
@@ -916,7 +956,7 @@ public class Globais
 		{
 		String msg =  "-Tela inicial do FalaSantos.\n" +
 			"-Abaixo estão todos os \"alvos\" nos quais você mostrou interesse.\n" +
-			"-Toque em qualquer um deles e sugirão os remetentes associados ao alvo tocado.\n" +
+			"-Toque em qualquer um deles e surgirão os remetentes associados ao alvo tocado.\n" +
 			"-Toque em um dos remetentes para ler as mensagens do mesmo.";
 		Globais.Alerta( ctx, "Ajuda", msg );
 		}
@@ -970,6 +1010,9 @@ public class Globais
 		menu.add( 0, R.integer.mnidAjuda, ++order, R.string.mntxAjuda );
 		menu.add( 0, R.integer.mnidSetup, ++order, R.string.mntxSetup );
 		menu.add( 0, R.integer.mnidConfi, ++order, R.string.mntxConfi );
+		menu.add( 0, R.integer.mnidWIFI, ++order, R.string.mntxWIFI );
+		menu.add( 0, R.integer.mnidBanda, ++order, R.string.mntxBanda );
+		
 		String idtel = nuSerial();
 		if( idtel != null )
 			{
@@ -1064,6 +1107,23 @@ public class Globais
 			ctx.startActivity( setup );
 			}
 		
+		if( idmenu == R.integer.mnidWIFI )
+			{
+			String sql = "update dispositivo set dis_flwifi=1";
+			db.execSQL( sql );
+			obterConfig();
+			return;
+			}
+		
+		if( idmenu == R.integer.mnidBanda )
+			{
+			String sql = "update dispositivo set dis_flwifi=0";
+			db.execSQL( sql );
+			obterConfig();
+			return;
+			}
+		
+		//  elementos do menu especial
 		if( idmenu == R.integer.mnidRemoveDB )
 			{
 			Globais.RemoveDB();
@@ -1094,6 +1154,7 @@ public class Globais
 			recuDB( pathSD + "/transfer/" + nodb );
 			return;
 			}
+		
 		}
 	//  utilitarios
 	/**

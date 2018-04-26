@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -84,6 +85,49 @@ public class ConfidenActivity extends AppCompatActivity
 				"Se você esquecer a senha, a \"Pergunta Secreta\" será mostrada para " +
 				"te ajudar a lembrá-la.\n";
 		((TextView) findViewById( R.id.txHelp )).setText( txt );
+		/*  diálogo de ativação de debug
+		findViewById( R.id.txHelp ).setClickable( true );
+		findViewById( R.id.txHelp ).setOnLongClickListener( new View.OnLongClickListener()
+			{
+			@Override
+			public boolean onLongClick( View v )
+				{
+				final AlertDialog.Builder prompDbg = new AlertDialog.Builder( ConfidenActivity.this );
+				prompDbg.setTitle( "Controle de Debug" );
+				prompDbg.setCancelable( false );
+				
+				LayoutInflater linf = ConfidenActivity.this.getLayoutInflater();
+				View dbview = linf.inflate( R.layout.debugview, null );
+				prompDbg.setView( dbview );
+				
+				prompDbg.setNegativeButton( "Cancelar", new DialogInterface.OnClickListener()
+					{
+					@Override
+					public void onClick( DialogInterface dialog, int which )
+						{
+						finish();
+						}
+					} );
+				String oktxt = "";
+				if( Globais.fldebug )
+					oktxt = "destivar";
+				else
+					oktxt = "ativar";
+					
+				prompDbg.setPositiveButton( oktxt, new DialogInterface.OnClickListener()
+					{
+					public void onClick( DialogInterface dialog, int whichButton )
+						{
+						Globais.fldebug = !Globais.fldebug;
+						}
+					} );
+				final AlertDialog dlg = prompDbg.create();
+				dlg.show();
+				
+				return false;
+				}
+			} );
+		*/
 		Globais.obterConfig();
 		if( Globais.config.senhaconf.length() > 0 )
 			{
@@ -93,7 +137,7 @@ public class ConfidenActivity extends AppCompatActivity
 			alert.setCancelable( false );
 			final EditText txsen = new EditText( this );
 			alert.setView( txsen );
-			alert.setNegativeButton( "Cancel", new DialogInterface.OnClickListener()
+			alert.setNegativeButton( "Cancelar", new DialogInterface.OnClickListener()
 				{
 				@Override
 				public void onClick( DialogInterface dialog, int which )
@@ -123,6 +167,18 @@ public class ConfidenActivity extends AppCompatActivity
 						txsen.setTextColor( getResources().getColor( R.color.colorError ) );
 					}
 				} );
+			}
+		}
+	
+	public void onDebugClick( View v )
+		{
+		if( v.getId() == R.id.btSQL )
+			{
+			Log.i( Globais.apptag, "clicou btSQL");
+			}
+		if( v.getId() == R.id.btLog )
+			{
+			Log.i( Globais.apptag, "clicou btLog");
 			}
 		}
 	

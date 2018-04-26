@@ -17,6 +17,7 @@
       android:textStyle="bold"/>
 
   <TextView
+      android:id="@+id/lbAlvo"
       android:layout_marginTop="10dp"
       android:text="Preencha todos os campos abaixo:"
       android:layout_width="match_parent"

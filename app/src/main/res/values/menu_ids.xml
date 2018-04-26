@@ -4,6 +4,8 @@
   <integer name="mnidAjuda">92</integer>
   <integer name="mnidSetup">93</integer>
   <integer name="mnidConfi">94</integer>
+  <integer name="mnidBanda">95</integer>
+  <integer name="mnidWIFI">96</integer>
   <integer name="mnidToken">106</integer>
   <integer name="mnidRemoveDB">107</integer>
   <integer name="mnidCopyDB">108</integer>
@@ -13,6 +15,8 @@
   <string name="mntxAjuda">Ajuda</string>
   <string name="mntxSetup">Configuração</string>
   <string name="mntxConfi">Confidencialidade</string>
+  <string name="mntxBanda">Permitir Banda Larga</string>
+  <string name="mntxWIFI">Somente WI-FI</string>
   <string name="mntxToken">Token FCM</string>
   <string name="mntxRemoveDB">Remover o DB</string>
   <string name="mntxCopyDB">Copiar o DB</string>

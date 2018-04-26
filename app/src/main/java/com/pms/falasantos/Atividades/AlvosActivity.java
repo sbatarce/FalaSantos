@@ -127,26 +127,42 @@ public class AlvosActivity extends AppCompatActivity implements RespostaConfig
 		//  verifica a parte comum a todas as respostas
 		try
 			{
+			String aux = "";
 			JSONObject jobj = new JSONObject( resposta );
 			if( jobj.has( "erro" ) )
 				{
 				String erro = jobj.getString( "erro" );
+				String tit = "Resposta do servidor com erro (10)";
 				if( erro.contains( "01017" ) )
-					Globais.Alerta( this, "Acesso negado", "SSHD e/ou senha não corretos" );
-				else
-					Globais.Alerta( this, "Resposta do servidor com erro (10)", erro );
+					{
+					erro = "SSHD e/ou senha não corretos";
+					tit = "Acesso negado.";
+					}
+				if( erro.toUpperCase().contains( "TIME" ) && erro.toUpperCase().contains( "OUT" ) )
+					{
+					erro =  "A resposta demorou um tempo excessivo para retornar.\n" +
+									"Por favor, tente mais tarde.";
+					tit = "Sem resposta do servidor de mensagens.";
+					}
+				if( jobj.has("status") )
+					aux += "status: " + jobj.getString( "status" ) + "\n";
+				aux += "erro: " + erro + "\n";
+				aux += "estado: " + state;
+				Globais.Alerta( this, "Resposta do servidor com erro (10)", aux );
 				return;
 				}
 			if( !jobj.has( "status" ) )
 				{
-				Globais.Alerta( this, "Resposta do servidor com erro (11)",
-				                "Resposta sem indicativo de estado" );
+				aux += "Resposta do servidor sem especificação de estado válido.\n";
+				aux += "estado: " + state;
+				Globais.Alerta( this, "Resposta do servidor com erro (11)", aux );
 				return;
 				}
 			if( !jobj.getString( "status" ).toUpperCase().equals( "OK" ) )
 				{
-				String status = jobj.getString( "status" );
-				Globais.Alerta( this, "Resposta do servidor com erro (12)", status );
+				aux = "status: " + jobj.getString( "status" ) + "\n" +
+							"estado: " + state;
+				Globais.Alerta( this, "Resposta do servidor com erro (12)", aux );
 				return;
 				}
 			//  processamento de cada estado

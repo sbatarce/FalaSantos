@@ -1,5 +1,6 @@
 package com.pms.falasantos.Atividades;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -13,6 +14,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -261,6 +264,7 @@ public class MensagensActivity extends AppCompatActivity implements RespostaConf
 				mens.putExtra( "idmens", "" + clm.idmens );
 				mens.putExtra( "titulo", clm.titulo );
 				mens.putExtra( "dtresp", clm.daresp );
+				mens.putExtra( "confidencial", clm.isConfidencial() );
 				startActivity( mens );
 				return true;
 				}
@@ -340,7 +344,7 @@ public class MensagensActivity extends AppCompatActivity implements RespostaConf
 				"       when msg.msg_dtresp is null then '' " +
 				"       else msg.msg_dtresp " +
 				"       end  as msg_dtresp, " +
-				"     cor_texto, cor.cor_id " +
+				"     cor_texto, cor.cor_id, msg.msg_confiden " +
 				"  from  mensagens msg " +
 				"  left join corpo cor on " +
 				"            cor.msg_id=msg.msg_id " +
@@ -350,6 +354,7 @@ public class MensagensActivity extends AppCompatActivity implements RespostaConf
 		String dtrec = "";
 		String dtlei = "";
 		String dtres = "";
+		boolean flconf = false;
 		int idmsg;
 
 		String dtnotant = "-";
@@ -360,6 +365,12 @@ public class MensagensActivity extends AppCompatActivity implements RespostaConf
 		try
 			{
 			curmsg = Globais.db.rawQuery( sql, null );
+			if( curmsg.getCount() < 1 )
+				{
+				curmsg.close();
+				finish();
+				return false;
+				}
 			int ixlista = 0;
 			while( curmsg.moveToNext() )
 				{
@@ -378,6 +389,7 @@ public class MensagensActivity extends AppCompatActivity implements RespostaConf
 							corpo,
 							""+idmsgant
 							);
+						clmens.setConfidencial( flconf );
 						temResp( clmens );
 						if( clmens.getFlresp() )
 							clmens.mensagem = "toque para abrir a mensagem";
@@ -394,6 +406,7 @@ public class MensagensActivity extends AppCompatActivity implements RespostaConf
 					dtnot = dtrec;
 				dtlei = curmsg.getString( curmsg.getColumnIndex( "msg_dtleitu" ) );
 				dtres = curmsg.getString( curmsg.getColumnIndex( "msg_dtresp" ) );
+				flconf = curmsg.getString( curmsg.getColumnIndex( "msg_confiden" ) ).equals( "1" );
 				titulo = curmsg.getString( curmsg.getColumnIndex( "msg_titulo" ) );
 				texto = curmsg.getString( curmsg.getColumnIndex( "cor_texto" ) );
 				if( corpo.length() > 0 )

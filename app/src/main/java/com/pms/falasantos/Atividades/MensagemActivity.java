@@ -1,5 +1,7 @@
 package com.pms.falasantos.Atividades;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
@@ -10,6 +12,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.WebView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -31,6 +34,8 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+import javax.microedition.khronos.opengles.GL;
+
 public class MensagemActivity extends AppCompatActivity implements View.OnClickListener
 	{
 	ScrollView                scroll;
@@ -38,6 +43,7 @@ public class MensagemActivity extends AppCompatActivity implements View.OnClickL
 	LinearLayout              ll;
 	LinearLayout.LayoutParams llp;
 	TextView                  txtx;
+	WebView                   webtx;
 	EditText                  edtx;
 	CheckBox                  ckbx;
 	Spinner                   cbbx;
@@ -79,13 +85,87 @@ public class MensagemActivity extends AppCompatActivity implements View.OnClickL
 		idmens = Integer.parseInt( mensg.getStringExtra( "idmens" ) );
 		titulo = mensg.getStringExtra( "titulo" );
 		dtresp = mensg.getStringExtra( "dtresp" );
+		boolean flconf = mensg.getBooleanExtra( "confidencial", false );
 		flsalvo = true;
 		//
 		llmens = (LinearLayout) findViewById( R.id.llmensagem );
 		llmens.removeAllViews();
+		
+		((TextView) findViewById( R.id.txTitMens )).setText( "" );
 		//
-		((TextView) findViewById( R.id.txTitMens )).setText( titulo );
-		setupMens();
+		
+		if( flconf )
+			{
+			final AlertDialog.Builder alert = new AlertDialog.Builder( this );
+			alert.setTitle( "Senha de confidencialidade" );
+			alert.setCancelable( false );
+			if( Globais.config.senhaconf.length() < 1 )
+				{
+				String aux = "Ainda não há uma senha de confidencialidade configurada.\n" +
+					"Você somente poderá ver mensagens confidenciais após configurá-la.\n" +
+					"Para isso, vá até o menu principal e clique em \"Confidencialidade\" " +
+					"e crie uma \"Pergunta Secreta\" e uma \"Senha\".\n" +
+					"Isto deito e você estará apto a ler mensagens confidenciais.";
+				alert.setMessage( aux  );
+				alert.setNegativeButton( "Cancelar", new DialogInterface.OnClickListener()
+					{
+					@Override
+					public void onClick( DialogInterface dialog, int which )
+						{
+						finish();
+						}
+					} );
+				final AlertDialog dlg = alert.create();
+				dlg.show();
+				return;
+				}
+			else
+				{
+				alert.setMessage( Globais.config.questao );
+				final EditText txsen = new EditText( this );
+				alert.setView( txsen );
+				alert.setNegativeButton( "Cancelar", new DialogInterface.OnClickListener()
+					{
+					@Override
+					public void onClick( DialogInterface dialog, int which )
+						{
+						finish();
+						}
+					} );
+				alert.setPositiveButton( "OK", new DialogInterface.OnClickListener()
+					{
+					@Override
+					public void onClick( DialogInterface dialog, int which )
+						{
+						}
+					} );
+				final AlertDialog dlg = alert.create();
+				dlg.show();
+				
+				Button btpos = dlg.getButton( AlertDialog.BUTTON_POSITIVE );
+				btpos.setOnClickListener( new View.OnClickListener()
+					{
+					@Override
+					public void onClick( View v )
+						{
+						String senha = txsen.getText().toString();
+						if( senha.equals( Globais.config.senhaconf ) )
+							{
+							dlg.dismiss();
+							((TextView) findViewById( R.id.txTitMens )).setText( titulo );
+							setupMens();
+							}
+						else
+							txsen.setTextColor( getResources().getColor( R.color.colorError ) );
+						}
+					} );
+				}
+			}
+		else
+			{
+			((TextView) findViewById( R.id.txTitMens )).setText( titulo );
+			setupMens();
+			}
 		}
 	
 	@Override
@@ -571,7 +651,7 @@ public class MensagemActivity extends AppCompatActivity implements View.OnClickL
 		else
 			finish();
 		}
-
+	
 	private int adcStatic( String nocmp, String txt, boolean flobr )
 		{
 		int id = View.generateViewId();
@@ -588,6 +668,22 @@ public class MensagemActivity extends AppCompatActivity implements View.OnClickL
 		else
 			txtx.setTextColor( Color.parseColor( "#000000" ) );
 		llmens.addView( txtx );
+		return id;
+		}
+	
+	private int adcHTML( String nocmp, String txt )
+		{
+		int id = View.generateViewId();
+		ll = new LinearLayout( this );
+		ll.setOrientation( LinearLayout.HORIZONTAL );
+		llp = new LinearLayout.LayoutParams( LinearLayout.LayoutParams.MATCH_PARENT,
+		                                     LinearLayout.LayoutParams.WRAP_CONTENT  );
+		
+		webtx = new WebView( this );
+		webtx.getSettings().setJavaScriptEnabled( false );
+		webtx.loadDataWithBaseURL( null, txt, "text/html", "utf-8", null );
+		webtx.setId( id );
+		llmens.addView( webtx );
 		return id;
 		}
 	
@@ -768,10 +864,8 @@ public class MensagemActivity extends AppCompatActivity implements View.OnClickL
 				"             opt.cor_id=cor.cor_id " +
 				"WHERE cor.msg_id=? ";
 			String[] parm = new String[]{ "" + idmens };
-			String[] lista;
 			Cursor curopt = Globais.db.rawQuery( sql, parm );
 			
-			String stjson = "{ \"corpos\":[";
 			int ticor = 0;
 			String codigo, texto, resposta;
 			boolean flres, flobr;
@@ -807,13 +901,13 @@ public class MensagemActivity extends AppCompatActivity implements View.OnClickL
 					corpo.put( "temresp", flres );
 					corpo.put( "obrig", flobr );
 					corpo.put( "resposta", resposta );
-					if( ticor > 3 )
+					if( ticor > 3 && ticor != 8 )
 						{
 						opcoes = new JSONArray();
 						corpo.put( "opcoes", opcoes );
 						}
 					}       //  quebra de corpo
-				if( ticor <= 3 )
+				if( ticor <= 3 || ticor == 8 )
 					continue;
 				int optid = curopt.getInt( curopt.getColumnIndex( "opt_id" ) );
 				codigo = curopt.getString( curopt.getColumnIndex( "opt_codigo" ) );
@@ -839,13 +933,20 @@ public class MensagemActivity extends AppCompatActivity implements View.OnClickL
 				{
 				//  mostra o texto do corpo
 				corpo = corpos.getJSONObject( ixcor );
+				ticor = corpo.getInt( "tipo" );
 				if( corpo.getBoolean( "temresp" ) )
 					temresp = true;
-				if( corpo.getBoolean( "obrig" ) )
-					adcStatic( corpo.getString( "codigo" ), "* " + corpo.getString( "texto" ), true );
+				if( ticor == 8 )
+					{
+					adcHTML( corpo.getString( "codigo" ), corpo.getString( "texto" ) );
+					}
 				else
-					adcStatic( corpo.getString( "codigo" ), " " + corpo.getString( "texto" ), false );
-				ticor = corpo.getInt( "tipo" );
+					{
+					if( corpo.getBoolean( "obrig" ) )
+						adcStatic( corpo.getString( "codigo" ), "* " + corpo.getString( "texto" ), true );
+					else
+						adcStatic( corpo.getString( "codigo" ), " " + corpo.getString( "texto" ), false );
+					}
 				switch( ticor )
 					{
 					case 1:

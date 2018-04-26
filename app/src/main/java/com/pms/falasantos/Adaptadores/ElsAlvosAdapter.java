@@ -21,6 +21,8 @@ public class ElsAlvosAdapter extends BaseExpandableListAdapter
 	private Context                       ctx;
 	private List<clAlvs>                  lsAlvos;
 	private HashMap<clAlvs, List<clRems>> lista;
+	private final int mxalv = 200;
+	private final int mxrem = 280;
 	
 	public ElsAlvosAdapter( Context ctx, List<clAlvs> lsAlvos, HashMap<clAlvs, List<clRems>> lista )
 		{
@@ -73,9 +75,10 @@ public class ElsAlvosAdapter extends BaseExpandableListAdapter
 			LayoutInflater infalInflater = (LayoutInflater) ctx.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
 			view = infalInflater.inflate( R.layout.alvo_item, null );
 			}
-		
-		((TextView)view.findViewById( R.id.txAlvo )).setText( clalv.alvo );
-		//((TextView)view.findViewById( R.id.txTotALer )).setText( ""+clalv.qtALer+"/"+clalv.qtTot );
+		String aux = clalv.alvo;
+		if( clalv.alvo.length() > mxalv )
+			aux = clalv.alvo.substring( 0, mxalv ) + "...";
+		((TextView)view.findViewById( R.id.txAlvo )).setText( aux );
 		if( clalv.qtALer > 0 )
 			((TextView)view.findViewById( R.id.txTotALer )).setText( ""+clalv.qtALer );
 		else
@@ -92,7 +95,10 @@ public class ElsAlvosAdapter extends BaseExpandableListAdapter
 			LayoutInflater inflater = (LayoutInflater) ctx.getSystemService( ctx.LAYOUT_INFLATER_SERVICE );
 			view = inflater.inflate( R.layout.rem_item, null );
 			}
-		((TextView)view.findViewById( R.id.txRemetente )).setText( clrems.rem );
+		String aux = clrems.rem;
+		if( clrems.rem.length() > mxrem )
+			aux = clrems.rem.substring( 0, mxrem ) + "...";
+		((TextView)view.findViewById( R.id.txRemetente )).setText( aux );
 		//((TextView)view.findViewById( R.id.txQtALer )).setText( ""+clrems.qtALer+"/"+clrems.qtTot );
 		if( clrems.qtALer > 0 )
 			((TextView)view.findViewById( R.id.txQtALer )).setText( ""+clrems.qtALer );

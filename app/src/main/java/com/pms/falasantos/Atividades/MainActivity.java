@@ -1,5 +1,6 @@
 package com.pms.falasantos.Atividades;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -8,6 +9,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
@@ -19,6 +21,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.Toast;
 
@@ -36,6 +40,7 @@ import org.json.JSONObject;
 
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -51,11 +56,10 @@ public class MainActivity extends AppCompatActivity implements RespostaConfig
 	
 	TraceNet trace;
 	
-	boolean flfim = false;
 	private long delay = 5000;
-	
 	private int posAlvo = -1;
 	private int posReme = -1;
+	private boolean flperm = false;     //  indica que o app está em processo de permissão
 	
 	final Handler hdl = new Handler();
 	
@@ -88,6 +92,7 @@ public class MainActivity extends AppCompatActivity implements RespostaConfig
 		setContentView( R.layout.activity_main );
 		Globais.atividade = Globais.Atividade.Main;
 		Globais.setContext( this );
+		
 		//  prepara a lista de alvos
 		elsAlvos = (ExpandableListView) findViewById( R.id.elsAlvos );
 		setupList();
@@ -96,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements RespostaConfig
 			{
 			String msg = "Desculpe, mas o FalaSantos não está preparado para rodar nesta versão de celular.";
 			Globais.Alerta( this, "O FalaSantos se encerrará", msg );
-			flfim = true;
+			Globais.flfim = true;
 			return;
 			}
 		//  verifica permissões
@@ -104,18 +109,30 @@ public class MainActivity extends AppCompatActivity implements RespostaConfig
 		                                                 android.Manifest.permission.READ_PHONE_STATE );
 		if( permite != PackageManager.PERMISSION_GRANTED )
 			{
+			flperm = true;
 			ActivityCompat.requestPermissions( MainActivity.this,
 			                                   new String[]{ android.Manifest.permission.READ_PHONE_STATE },
 			                                   1001 );
+			/*
+			permite = ContextCompat.checkSelfPermission( this,
+			                                             android.Manifest.permission.READ_PHONE_STATE );
+			if( permite != PackageManager.PERMISSION_GRANTED )
+				finish();
+			*/
 			return;
 			}
 		//
-		trace = new TraceNet( this );
+		try
+			{
+			trace = new TraceNet( this );
+			}
+		catch( Exception exc )
+			{
+			}
 		//  seta o action bar
 		getSupportActionBar().setDisplayOptions( ActionBar.DISPLAY_SHOW_CUSTOM );
 		getSupportActionBar().setDisplayShowCustomEnabled( true );
 		getSupportActionBar().setCustomView( R.layout.actbar );
-		View view = getSupportActionBar().getCustomView();
 		//  verifica se é uma URL
 		Bundle ext = getIntent().getExtras();
 		/**
@@ -145,10 +162,6 @@ public class MainActivity extends AppCompatActivity implements RespostaConfig
 							}
 						break;
 					}
-				/*
-				Globais.pFBMens.obterMens(  );
-				Globais.comNovidades();
-				*/
 				}
 			}
 		}
@@ -170,21 +183,69 @@ public class MainActivity extends AppCompatActivity implements RespostaConfig
 		}
 	
 	@Override
+	public void onRequestPermissionsResult( int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults )
+		{
+		switch( requestCode )
+			{
+			case 1001:
+				if( grantResults.length < 1 )
+					break;
+				if( grantResults[0] == PackageManager.PERMISSION_GRANTED )
+					flperm = false;
+				else
+					{
+					String txmsg =
+						"As permissões do aplicativo foram negadas e " +
+							"não há como prosseguir sem as mesmas.\n" +
+							"Essas permissões são necessárias para acessar o número de " +
+							"série do telefone para que o sistema saiba a que " +
+							"telefone as mensagens do FalaSantos se destinam.\n" +
+							"O aplicativo não usará estas permissões para realizar qualquer " +
+							"chamada ou enviar qualquer mensagem que não através da Internet, " +
+							"restrito à conexão WI-FI se assim for solicitado por você.\n" +
+							"O Aplicativo se encerrará quando você tocar o \"OK\" abaixo.\n" +
+							"Para voltar a usá-lo você tem algumas opções:\n" +
+							"1-Desinstale e reinstale o FalaSantos, ou\n" +
+							"2-Vá em \"Gerenciar apps\", selecione o FalaSantos, " +
+							"depois armazenamento e depois limpar dados, ou.\n" +
+							"3-Vá em \"Gerenciar apps\", selecione o FalaSantos, " +
+							"depois permissões e habilite as permissões apresentadas.\n" +
+							"Após qualquer das opções acima, reexecute o FalaSantos " +
+							"normalmente e autorize as permissões solicitadas.";
+					final AlertDialog.Builder alert = new AlertDialog.Builder( this );
+					alert.setTitle( "Permissões" );
+					alert.setMessage( txmsg );
+					alert.setCancelable( false );
+					final EditText txsen = new EditText( this );
+					alert.setView( txsen );
+					alert.setPositiveButton( "Ok", new DialogInterface.OnClickListener()
+						{
+						public void onClick( DialogInterface dialog, int whichButton )
+							{
+							finishAffinity();
+							}
+						} );
+					final AlertDialog dlg = alert.create();
+					dlg.show();
+					}
+			}
+		super.onRequestPermissionsResult( requestCode, permissions, grantResults );
+		}
+	@Override
 	protected void onResume()
 		{
 		super.onResume();
 		Globais.setContext( this );
 		
-		//if( Globais.atividade == Globais.Atividade.nenhuma )
-			//{
-			Globais.pFBMens.obterMens(  );
-			//}
+		if( flperm )
+			return;
 		
 		Globais.atividade = Globais.Atividade.Main;
 		//
-		if( flfim )
+		if( Globais.flfim )
 			{
 			finishAffinity();
+			Globais.flfim = false;
 			return;
 			}
 		//  verifica SDK version
@@ -192,7 +253,7 @@ public class MainActivity extends AppCompatActivity implements RespostaConfig
 			{
 			String msg = "Desculpe, mas o FalaSantos não está preparado para rodar nesta versão de celular.";
 			Globais.Alerta( this, "O FalaSantos se encerrará", msg );
-			flfim = true;
+			Globais.flfim = true;
 			return;
 			}
 		//  verifica permissões
@@ -203,6 +264,12 @@ public class MainActivity extends AppCompatActivity implements RespostaConfig
 			ActivityCompat.requestPermissions( MainActivity.this,
 			                                   new String[]{ android.Manifest.permission.READ_PHONE_STATE },
 			                                   1001 );
+			/*
+			permite = ContextCompat.checkSelfPermission( this,
+			                                             android.Manifest.permission.READ_PHONE_STATE );
+			if( permite != PackageManager.PERMISSION_GRANTED )
+				finish();
+			*/
 			return;
 			}
 		//
@@ -214,13 +281,16 @@ public class MainActivity extends AppCompatActivity implements RespostaConfig
 				String msg = "O FalaSantos será encerrado.  " +
 					"Por favor, reinicie-o para corrigir os problemas detectados.";
 				Globais.Alerta( this, "Banco de dados corrompido", msg );
-				flfim = true;
+				Globais.flfim = true;
 				return;
 				}
 			}
 		//  verifica se fez setup
 		if( Globais.fezSetup() )
+			{
+			Globais.pFBMens.obterMens(  );
 			obterMensg();
+			}
 		else
 			{
 			Intent setup = new Intent( this, SetupActivity.class );
@@ -256,7 +326,7 @@ public class MainActivity extends AppCompatActivity implements RespostaConfig
 			                "Seu celular deve estar conectado para realizar esta operação." );
 			return;
 			}
-		progress = ProgressDialog.show( this, "Por favor, espere...", "Validando os dados digitados...",
+		progress = ProgressDialog.show( this, "Por favor, espere...", "Removendo o alvo...",
 		                                true );
 		req = new RequestHttp( this );
 		String url = Globais.dominio + "/services/SRV_REMOALVO.php";
@@ -379,8 +449,7 @@ public class MainActivity extends AppCompatActivity implements RespostaConfig
 			c = Globais.db.rawQuery( sql, null );
 			while( c.moveToNext() )
 				{
-				alvo = c.getString( c.getColumnIndex( "noarea" ) ) + " - " +
-					c.getString( c.getColumnIndex( "noalvo" ) );
+				alvo = c.getString( c.getColumnIndex( "noalvo" ) );
 				idalv = c.getInt( c.getColumnIndex( "alv_id" ) );
 				rem = c.getString( c.getColumnIndex( "norem" ) );
 				idr = c.getInt( c.getColumnIndex( "idrem" ) );
@@ -392,7 +461,7 @@ public class MainActivity extends AppCompatActivity implements RespostaConfig
 					}
 				if( idr != idrant )
 					{
-					if( idrant != -1 )
+					if( idrant != -1 && !remant.isEmpty() )
 						lsrems.add( new clRems( idrant, remant, qtRemALer, qtRemTot ) );
 					qtAlvALer += qtRemALer;
 					qtAlvTot += qtRemTot;
@@ -402,7 +471,7 @@ public class MainActivity extends AppCompatActivity implements RespostaConfig
 					idrant = idr;
 					}
 				//  tratamento do alvo
-				if( !alvo.equals( alvant ) )      //  novo area/alvo
+				if( idalv != idalvant)        //  outro alvo
 					{
 					if( !alvant.equals( "-" ) )
 						{

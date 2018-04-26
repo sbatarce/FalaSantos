@@ -2,6 +2,7 @@ package com.pms.falasantos.Atividades;
 
 import android.app.ProgressDialog;
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.support.annotation.IdRes;
 import android.support.v7.app.ActionBar;
@@ -20,6 +21,7 @@ import android.widget.Toast;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.pms.falasantos.Globais;
+import com.pms.falasantos.Outras.clAlvs;
 import com.pms.falasantos.R;
 import com.pms.falasantos.Comunicacoes.RequestHttp;
 import com.pms.falasantos.RespostaConfig;
@@ -29,6 +31,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.URLEncoder;
+import java.text.Normalizer;
 import java.util.Date;
 
 public class SetupActivity extends AppCompatActivity implements View.OnClickListener, RespostaConfig
@@ -51,8 +54,9 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 		}
 	State state = State.nenhum;
 	
-	boolean flokc = false,
-		flwifi      = false;
+	boolean flokc   = false,
+					flwifi  = false;
+	int qtalvos = 0;
 	
 	
 	RequestHttp req = null;
@@ -184,19 +188,38 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 		{
 		super.onWindowFocusChanged( hasFocus );
 		if( hasFocus )
-			{
-			if( flokc )
-				{
-				flokc = false;
-				if( !Globais.alertResu )
-					finishAffinity();
-				else
-					Globais.alertResu = false;
-				}
 			Globais.setEmUso();
-			}
 		else
 			Globais.setSemUso();
+		}
+	
+	private void confirma()
+		{
+		String msg = "Você ainda não configurou o aplicativo.\n" +
+			"-Pressione Prosseguir para isso.\n" +
+			"-Ou pressione Encerrar para sair e configurar mais tarde.";
+		final android.app.AlertDialog.Builder prompt =
+			new android.app.AlertDialog.Builder( SetupActivity.this );
+		prompt.setTitle( "Por favor, preencha os dados" );
+		prompt.setMessage( msg );
+		prompt.setCancelable( false );
+		prompt.setNegativeButton( "Encerrar", new DialogInterface.OnClickListener()
+			{
+			@Override
+			public void onClick( DialogInterface dialogInterface, int i )
+				{
+				Globais.flfim = true;
+				SetupActivity.this.finish();
+				}
+			} );
+		prompt.setPositiveButton( "Prosseguir", new DialogInterface.OnClickListener()
+			{
+			@Override
+			public void onClick( DialogInterface dialogInterface, int i )
+				{
+				}
+			} );
+		prompt.show();
 		}
 	
 	@Override
@@ -207,11 +230,7 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 			if( !Globais.fezSetup() )
 				{
 				flokc = true;
-				String msg = "Você ainda não configurou o aplicativo.\n" +
-					"-Pressione Prosseguir para isso.\n" +
-					"-Ou pressione Encerrar para sair e configurar mais tarde.";
-				Globais.AlertaOKCancel( this, "Por favor preencha os dados", msg, "prosseguir",
-				                        "Encerrar" );
+				confirma();
 				return;
 				}
 			else
@@ -296,11 +315,23 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 			else
 				{
 				//  de munícipe
-				//  verifica o CPF
-				cpf = ((EditText) findViewById( R.id.txCPF )).getText().toString();
-				if( !Globais.isCPF( cpf ) )
+				//  verifica o nome
+				nome = ((EditText) findViewById( R.id.txNome )).getText().toString();
+				if( nome == null )
 					{
-					String msg = "O CPF fornecido é inválido. Por favor introduza um CPF correto.";
+					String msg = "Por favor forneça seu nome, de preferencia completo.";
+					Globais.Alerta( this, "Por favor, corrija.", msg );
+					return;
+					}
+				if( nome.length() < 2 )
+					{
+					String msg = "Por favor forneça seu nome, de preferencia completo.";
+					Globais.Alerta( this, "Por favor, corrija.", msg );
+					return;
+					}
+				if( !Globais.isAlfa( nome ) )
+					{
+					String msg = "O nome contém caracteres não aceitáveis.";
 					Globais.Alerta( this, "Por favor, corrija.", msg );
 					return;
 					}
@@ -327,17 +358,13 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 					Globais.Alerta( this, "Por favor, corrija.", msg );
 					return;
 					}
-				//  verifica o nome
-				nome = ((EditText) findViewById( R.id.txNome )).getText().toString();
-				if( nome == null )
+				dtnas = Globais.stData( dt, "d" );
+				((EditText) findViewById( R.id.txDtNasc )).setText( dtnas );
+				//  verifica o CPF
+				cpf = ((EditText) findViewById( R.id.txCPF )).getText().toString();
+				if( !Globais.isCPF( cpf ) )
 					{
-					String msg = "Por favor forneça seu nome, de preferencia completo.";
-					Globais.Alerta( this, "Por favor, corrija.", msg );
-					return;
-					}
-				if( nome.length() < 2 )
-					{
-					String msg = "Por favor forneça seu nome, de preferencia completo.";
+					String msg = "O CPF fornecido é inválido. Por favor introduza um CPF correto.";
 					Globais.Alerta( this, "Por favor, corrija.", msg );
 					return;
 					}
@@ -530,6 +557,7 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 							return;
 							}
 						dados = jobj.getJSONArray( "dados" );
+						Globais.db.beginTransaction();
 						for( int ix=0; ix<qtd; ix++ )
 							{
 							cv = new ContentValues( 5 );
@@ -543,13 +571,21 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 							cv.put( "alv_nome", nome );
 							long id = Globais.db.insert( "alvos", null, cv );
 							}
+						Globais.db.setTransactionSuccessful();
+						Globais.db.endTransaction();
 						}
 					
 					//  acabou a configuração
-					Toast.makeText( getApplicationContext(),
-					                "Configuração efetuada. Adicione um alvo a seguir.",
-					                Toast.LENGTH_LONG ).show();
+					if( qtalvos == 0 )
+						Toast.makeText( getApplicationContext(),
+						                "Configuração efetuada. Adicione um alvo a seguir.",
+						                Toast.LENGTH_LONG ).show();
+					else
+						Toast.makeText( getApplicationContext(),
+						                "Configuração efetuada.",
+						                Toast.LENGTH_LONG ).show();
 					Globais.obterConfig();
+					Thread.sleep( 3000 );
 					finish();
 					
 					break;
@@ -657,6 +693,15 @@ public class SetupActivity extends AppCompatActivity implements View.OnClickList
 	
 	private void obterAlvos()
 		{
+		Cursor cur = Globais.db.rawQuery( "select count(1) as qtd from alvos", null );
+		cur.moveToFirst();
+		qtalvos = cur.getInt( cur.getColumnIndex( "qtd" ) );
+		cur.close();
+		if( qtalvos > 0 )
+			{
+			finish();
+			return;
+			}
 		//  pede todos os eventuais alvos
 		progress = ProgressDialog.show( this, "Por favor, espere...", "Obtendo eventuais alvos antigos...",
 		                                true );

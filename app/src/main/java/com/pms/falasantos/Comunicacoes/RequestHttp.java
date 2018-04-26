@@ -173,6 +173,7 @@ public class RequestHttp extends AsyncTask< String, Long, String >
 				conn.setDoOutput( true );
 				conn.setInstanceFollowRedirects( false );
 				conn.setRequestProperty( "Content-Length", "" + body.length );
+				conn.setRequestProperty( "Content-Type", "application/json"  );
 				conn.setUseCaches( false );
 				DataOutputStream wr = new DataOutputStream( conn.getOutputStream( ) );
 				wr.write( body );

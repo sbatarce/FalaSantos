@@ -22,11 +22,13 @@ import java.util.List;
 
 public class processFBMens implements RespostaConfig
 	{
-	Context ctx = Globais.ctx;
+	Context     ctx = Globais.ctx;
 	RequestHttp req = null;
 	private ProgressDialog progress;
 	private boolean flprog = false;
 	List<Integer> lsmsgs = null;          //  lista de ids de mensagens respondidas
+	
+	String msgid = "";                    //  lista de ids de mensagens atualizadas
 	
 	String lsrec = "";        //  lista de IDs recebidos
 	String lslei = "";        //  lista de IDs lidos
@@ -35,11 +37,11 @@ public class processFBMens implements RespostaConfig
 	
 	private enum State
 		{
-		nenhum,
-		obtmens,
-		atuamsas,
-		atuaresp,
-		atuauatua
+			nenhum,
+			obtmens,
+			atuamsas,
+			atuaresp,
+			atuauatua
 		}
 	
 	private State state = State.nenhum;
@@ -49,7 +51,7 @@ public class processFBMens implements RespostaConfig
 		this.ctx = ctx;
 		}
 	
-	public boolean obterMens(  )
+	public boolean obterMens()
 		{
 		if( !Globais.isConnected() )
 			return false;
@@ -57,7 +59,7 @@ public class processFBMens implements RespostaConfig
 		req = new RequestHttp( ctx );
 		state = State.obtmens;
 		String url = Globais.dominio + "/services/SRV_OBTERMENS.php?";
-		url += "iddis=" + URLEncoder.encode( ""+Globais.config.iddis );
+		url += "iddis=" + URLEncoder.encode( "" + Globais.config.iddis );
 		req.delegate = this;
 		req.execute( url );
 		return true;
@@ -72,23 +74,29 @@ public class processFBMens implements RespostaConfig
 		String leitu = "";
 		String respo = "";
 		String delet = "";
-
-		String sql = "select msg_msaid, msg_dtuatua, msg_dtreceb, msg_dtleitu, msg_dtresp, msg_dtdelete " +
+		
+		String sql = "select msg_id, msg_msaid, msg_dtuatua, msg_dtreceb, msg_dtleitu, msg_dtresp, msg_dtdelete " +
 			" from mensagens " +
 			" where msg_dtreceb > msg_dtuatua OR " +
 			"   msg_dtleitu > msg_dtuatua OR " +
 			"   msg_dtresp > msg_dtuatua OR " +
 			"   msg_dtdelete > msg_dtuatua";
 		
+		String lsmsg = "";
 		Cursor cur = Globais.db.rawQuery( sql, null );
 		while( cur.moveToNext() )
 			{
+			msgid = cur.getString( cur.getColumnIndex( "msg_id" ) );
 			msaid = cur.getString( cur.getColumnIndex( "msg_msaid" ) );
 			uatua = cur.getString( cur.getColumnIndex( "msg_dtuatua" ) );
 			receb = cur.getString( cur.getColumnIndex( "msg_dtreceb" ) );
 			leitu = cur.getString( cur.getColumnIndex( "msg_dtleitu" ) );
 			respo = cur.getString( cur.getColumnIndex( "msg_dtresp" ) );
 			delet = cur.getString( cur.getColumnIndex( "msg_dtdelete" ) );
+			
+			if( lsmsg.length() > 0 )
+				lsmsg += ",";
+			lsmsg += msgid;
 			
 			if( receb.compareTo( uatua ) > 0 )
 				{
@@ -118,7 +126,7 @@ public class processFBMens implements RespostaConfig
 		cur.close();
 		
 		if( lsdel.equals( "" ) && lslei.equals( "" ) &&
-				lsrec.equals( "" ) && lsres.equals( "" ) )
+			lsrec.equals( "" ) && lsres.equals( "" ) )
 			{
 			return;
 			}
@@ -190,7 +198,7 @@ public class processFBMens implements RespostaConfig
 			}
 		String where = "msg_msaid in(" + lsin + ")";
 		ContentValues cv = new ContentValues( 5 );
-		cv.put( "msg_dtuatua", Globais.agoraDB());
+		cv.put( "msg_dtuatua", Globais.agoraDB() );
 		int qtd = Globais.db.update( "mensagens", cv, where, null );
 		return;
 		}
@@ -199,7 +207,7 @@ public class processFBMens implements RespostaConfig
 	private String montaResposta()
 		{
 		lsmsgs = new ArrayList<>();
-		JSONArray jres = new JSONArray(  );
+		JSONArray jres = new JSONArray();
 		JSONObject corpo = null;
 		JSONArray opts = null;
 		try
@@ -217,7 +225,7 @@ public class processFBMens implements RespostaConfig
 				"WHERE  msg.msg_dtresp<>'' " +
 				"  AND  (msg.msg_dtuatua='' OR msg.msg_dtresp > msg.msg_dtuatua)" +
 				"  ORDER BY msg.msg_id";
-
+			
 			Cursor cur = Globais.db.rawQuery( sql, null );
 			int msgant = -1;
 			int corant = -1;
@@ -286,10 +294,13 @@ public class processFBMens implements RespostaConfig
 			}
 		return jres.toString();
 		}
-	
 	//
 	public boolean mandaRespostas()
 		{
+		if( Globais.fldebug )
+			{
+			
+			}
 		if( Globais.db == null )
 			return false;
 		if( !Globais.isConnected() )
@@ -321,11 +332,12 @@ public class processFBMens implements RespostaConfig
 		int qtd;
 		JSONArray dados;
 		JSONObject junid;
+		JSONObject jobj;
 		ContentValues cv;
 		//  verifica a parte comum a todas as respostas
 		try
 			{
-			JSONObject jobj = new JSONObject( resposta );
+			jobj = new JSONObject( resposta );
 			if( jobj.has( "erro" ) )
 				{
 				String erro = jobj.getString( "erro" );
@@ -335,7 +347,8 @@ public class processFBMens implements RespostaConfig
 					{
 					Globais.Alerta( ctx, "Por favor, tente mais tarde! (6)",
 					                "O acesso aos dados apresentou um problema.\n" +
-					              "Pode estar passando por dificuldades no momento.\n" );
+						                "Pode estar passando por dificuldades no momento.\n" +
+					                  resposta );
 					Log.d( Globais.apptag, "Erro do servidor(6): " + erro );
 					}
 				return;
@@ -344,7 +357,8 @@ public class processFBMens implements RespostaConfig
 				{
 				Globais.Alerta( ctx, "Por favor, tente mais tarde! (7)",
 				                "O acesso aos dados apresentou um problema.\n" +
-					                "Pode estar passando por dificuldades no momento.\n" );
+					                "Pode estar passando por dificuldades no momento.\n" +
+					                resposta );
 				return;
 				}
 			if( !jobj.getString( "status" ).equals( "OK" ) && !jobj.getString( "status" ).equals( "ok" ) )
@@ -352,13 +366,27 @@ public class processFBMens implements RespostaConfig
 				String status = jobj.getString( "status" );
 				Globais.Alerta( ctx, "Por favor, tente mais tarde! (8)",
 				                "O acesso aos dados apresentou um problema.\n" +
-					                "Pode estar passando por dificuldades no momento.\n" );
+					                "Pode estar passando por dificuldades no momento.\n" +
+					                resposta );
 				return;
 				}
-			//  processamento de cada estado
-			switch( state )
-				{
-				case obtmens:
+			}
+		catch( JSONException jexc )
+			{
+			Log.i( Globais.apptag, jexc.getMessage() );
+			return;
+			}
+		catch( Exception exc )
+			{
+			Log.i( Globais.apptag, exc.getMessage() );
+			return;
+			}
+		//  processamento de cada estado
+		switch( state )
+			{
+			case obtmens:
+				try
+					{
 					if( !jobj.has( "quantidade" ) )
 						{
 						Globais.Alerta( ctx, "Por favor, tente mais tarde! (9)",
@@ -369,7 +397,7 @@ public class processFBMens implements RespostaConfig
 					int qtmsg = jobj.getInt( "quantidade" );
 					if( qtmsg < 1 )
 						return;
-					if( !jobj.has( "mensagens") )
+					if( !jobj.has( "mensagens" ) )
 						{
 						Globais.Alerta( ctx, "Por favor, tente mais tarde! (10)",
 						                "O acesso aos dados apresentou um problema.\n" +
@@ -377,7 +405,8 @@ public class processFBMens implements RespostaConfig
 						return;
 						}
 					JSONArray mensgs = jobj.getJSONArray( "mensagens" );
-					for( int ixmsg=0; ixmsg<qtmsg; ixmsg++ )
+					
+					for( int ixmsg = 0; ixmsg < qtmsg; ixmsg++ )
 						{
 						JSONObject mensg = mensgs.getJSONObject( ixmsg );
 						int idalv = mensg.getInt( "idalv" );
@@ -387,13 +416,27 @@ public class processFBMens implements RespostaConfig
 						String sshd = mensg.getString( "sshd" );
 						String remet = mensg.getString( "remetente" );
 						String notif = mensg.getString( "dtnoti" );
+						boolean flconf = false;
+						if( mensg.has( "confiden" ) )
+							flconf = mensg.getString( "confiden" ).equals( "1" );
 						if( lista.length() > 0 )
 							lista += ",";
-						lista += ""+idmsa;
+						lista += "" + idmsa;
+						//  verifica repetição do MSA
+						Cursor cur = Globais.db.rawQuery(
+							"select msg_id from mensagens where msg_msaid=" + idmsa, null );
+						if( cur.moveToFirst() )
+							{
+							cur.close();
+							continue;
+							}
+						cur.close();
+						//
 						long ixrem = Globais.ixRemet( sshd, idalv, remet );
 						//  insere a nova mensagem
 						//  afazer => precisa iniciar uma transação aqui?
-						cv = new ContentValues( 10 );
+						Globais.db.beginTransaction();
+						cv = new ContentValues( 15 );
 						cv.put( "rem_id", ixrem );
 						cv.put( "msg_msaid", idmsa );
 						cv.put( "msg_titulo", titulo );
@@ -403,13 +446,15 @@ public class processFBMens implements RespostaConfig
 						cv.put( "msg_dtresp", "" );
 						cv.put( "msg_dtuatua", "" );
 						cv.put( "msg_dtdelete", "" );
+						if( flconf )
+							cv.put( "msg_confiden", "1" );
 						idmsg = (int) Globais.db.insertOrThrow( "mensagens", null, cv );
 						//  obtem os eventuais corpos da mensagem
-						if( mensg.has( "corpos") )
+						if( mensg.has( "corpos" ) )
 							{
 							JSONArray corpos = mensg.getJSONArray( "corpos" );
 							int qtcor = corpos.length();
-							for( int ixcor=0; ixcor<qtcor; ixcor++ )
+							for( int ixcor = 0; ixcor < qtcor; ixcor++ )
 								{
 								JSONObject corpo = corpos.getJSONObject( ixcor );
 								long idcor = corpo.getInt( "idcor" );
@@ -429,11 +474,11 @@ public class processFBMens implements RespostaConfig
 								cv.put( "cor_stobrigatoria", obrig );
 								idcor = Globais.db.insertOrThrow( "corpo", null, cv );
 								//  verifica opções do corpo
-								if( corpo.has("opcoes") )
+								if( corpo.has( "opcoes" ) )
 									{
 									JSONArray opcoes = corpo.getJSONArray( "opcoes" );
 									int qtopt = opcoes.length();
-									for( int ixopt=0; ixopt<qtopt; ixopt++ )
+									for( int ixopt = 0; ixopt < qtopt; ixopt++ )
 										{
 										JSONObject opcao = opcoes.getJSONObject( ixopt );
 										int idopt = opcao.getInt( "idopt" );
@@ -451,39 +496,43 @@ public class processFBMens implements RespostaConfig
 									}       //  corpo tem opcoes
 								}         //  for corpos
 							}           //  mensagem tem corpos
+						Globais.db.setTransactionSuccessful();
+						Globais.db.endTransaction();
 						}             //  for mensagens
 					//  atualiza os MSA's
 					Globais.comNovidades();
 					mandaRespostas();
 					break;
+					}
+				catch( JSONException jexc )
+					{
+					Log.i( "chamada", jexc.getMessage() );
+					if( Globais.db.inTransaction() )
+						Globais.db.endTransaction();
+					}
+				catch( Exception exc )
+					{
+					Log.i( "chamada", exc.getMessage() );
+					if( Globais.db.inTransaction() )
+						Globais.db.endTransaction();
+					}
+				
 				//  atualizou os msas com RECEBIDO
-				case atuamsas:
-					atuauatua();
-					break;
-				//  atualiza respostas
-				case atuaresp:
-					String in = "";
-					for( int msgid: lsmsgs )
-						{
-						if( in.equals( "" ) )
-							in += msgid;
-						else
-							in += ", " + msgid;
-						}
-					String sql = "UPDATE mensagens SET msg_dtuatua='" + Globais.agoraDB() +
-						"' WHERE msg_id IN( " + in + " )";
-					Globais.db.execSQL( sql );
-					atuaMSAs();
-					break;
-				}
-			}
-		catch( JSONException jexc )
-			{
-			Log.i( "chamada", jexc.getMessage() );
-			}
-		catch( Exception exc )
-			{
-			Log.i( "chamada", exc.getMessage() );
+			case atuamsas:
+				atuauatua();
+				break;
+			//  atualiza respostas
+			case atuaresp:
+				String in = "";
+				for( int msgid : lsmsgs )
+					{
+					if( in.equals( "" ) )
+						in += msgid;
+					else
+						in += ", " + msgid;
+					}
+				atuaMSAs();
+				break;
 			}
 		}
 	

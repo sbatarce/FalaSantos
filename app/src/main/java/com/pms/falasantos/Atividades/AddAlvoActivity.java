@@ -2,7 +2,7 @@ package com.pms.falasantos.Atividades;
 
 /**
  *    Monta a tela de entrada dos dados do alvo escolhido pelo usuário
- *    mostra a tela e espera botão OK ou cancel
+ *    mostra a tela e espera botão OK ou cancelar
  *    chama o validador do sistema de origem
  *    segue com o cadastramento do alvo no servidor
  *
@@ -86,7 +86,7 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 		noalvo = clalvo.alvo;
 		String aux = "Alvo: " + noalvo;
 		((TextView) findViewById( R.id.txNoAlvo )).setText( "Alvo: " + clalvo.alvo );
-		LinearLayout ll;
+		LinearLayout ll = null;
 		LinearLayout.LayoutParams llp;
 		TextView titCmp;
 		EditText edtx;
@@ -94,9 +94,12 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 		Spinner cbbx;
 		int id = -1;
 		
+		Button botao;
+		LinearLayout llalvo = (LinearLayout) findViewById( R.id.linAlvo );
 		if( clalvo.qtCampos() > 0 )
 			{
-			LinearLayout llalvo = (LinearLayout) findViewById( R.id.linAlvo );
+			((TextView) findViewById( R.id.lbAlvo ))
+				.setText( "Preencha todos os campos abaixo:" );
 			for( clCampo cmp : clalvo.campos )
 				{
 				ll = new LinearLayout( this );
@@ -343,7 +346,6 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 			ll.setLayoutParams( llp );
 			llalvo.addView( ll );
 			//  botões
-			Button botao;
 			//  botão de OK
 			if( ok )
 				{
@@ -354,9 +356,9 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 				botao.setOnClickListener( this );
 				ll.addView( botao );
 				}
-			//  botão cancel
+			//  botão cancelar
 			botao = new Button( this );
-			botao.setText( "cancel" );
+			botao.setText( "cancelar" );
 			idCancel = View.generateViewId();
 			botao.setId( idCancel );
 			botao.setOnClickListener( this );
@@ -364,7 +366,29 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 			}
 		else
 			{
-				
+			ll = new LinearLayout( this );
+			ll.setOrientation( LinearLayout.HORIZONTAL );
+			ll.setWeightSum( 100 );
+			llp = new LinearLayout.LayoutParams( LinearLayout.LayoutParams.MATCH_PARENT,
+			                                     LinearLayout.LayoutParams.WRAP_CONTENT );
+			ll.setLayoutParams( llp );
+			((TextView) findViewById( R.id.lbAlvo ))
+				.setText( "Pressione OK para aderir ao alvo." );
+			//  botão OK
+			botao = new Button( this );
+			botao.setText( "OK" );
+			idOK = View.generateViewId();
+			botao.setId( idOK );
+			botao.setOnClickListener( this );
+			ll.addView( botao );
+			//  botão cancelar
+			botao = new Button( this );
+			botao.setText( "cancelar" );
+			idCancel = View.generateViewId();
+			botao.setId( idCancel );
+			botao.setOnClickListener( this );
+			ll.addView( botao );
+			llalvo.addView( ll );
 			}
 		}
 	@Override
@@ -447,39 +471,15 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 							                "Deve ser no formato DDMMAAAA ou DD/MM/AAAA" );
 							return;
 							}
-						Date date = null;
-						SimpleDateFormat sdf;
-						if( vedtx.length() == 8 )
+						Date date = Globais.toDate( vedtx );
+						if( date == null )
 							{
-							sdf = new SimpleDateFormat( "ddmmyyyy" );
-							try
-								{
-								date = sdf.parse( vedtx );
-								}
-							catch(ParseException pexc )
-								{
-								Globais.Alerta( this, "Data inválida",
-								                "Deve ser no formato DDMMAAAA ou DD/MM/AAAA" );
-								return;
-								}
+							Globais.Alerta( this, "Data inválida",
+							                "Deve ser dada no formato DDMMAAAA ou DD/MM/AAAA" );
+							return;
 							}
-						if( vedtx.length() == 10 )
-							{
-							sdf = new SimpleDateFormat( "dd/mm/yyyy" );
-							try
-								{
-								date = sdf.parse( vedtx );
-								}
-							catch(ParseException pexc )
-								{
-								Globais.Alerta( this, "Data inválida",
-								                "Deve ser no formato DDMMAAAA ou DD/MM/AAAA" );
-								return;
-								}
-							}
-						sdf = new SimpleDateFormat( "dd/mm/yyyy" );
 						body += "\"" + cmp.campo + "\": \"";
-						body += sdf.format( date ) + "\"";
+						body += Globais.stData( date, "d" ) + "\"";
 						break;
 						
 					case 30:
@@ -569,7 +569,14 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 			if( !jobj.getString( "status" ).equals( "OK" ) && !jobj.getString( "status" ).equals( "ok" ) )
 				{
 				String descr = jobj.getString( "descr" );
-				Globais.Alerta( this, "Resposta do servidor com erro (16)", descr );
+				if( descr.contains( "duplicidade" ))
+					{
+					Globais.Alerta( this, "Atenção!",
+					                "Você ja tem este alvo adicionado." );
+					//finish();
+					}
+				else
+					Globais.Alerta( this, "Resposta do servidor com erro (16)", descr );
 				return;
 				}
 			switch( state )
@@ -630,7 +637,11 @@ public class AddAlvoActivity extends AppCompatActivity implements RespostaConfig
 			}
 		catch( JSONException jexc )
 			{
-			Globais.Alerta( this, "Por favor, tente mais tarde.", "Falhou acesso ao servidor." );
+			if( resposta.contains( "Not Found" ) )
+				Globais.Alerta( this, "Desculpe, falha do sistema.",
+				                "O validador deste alvo não existe. " );
+			else
+				Globais.Alerta( this, "Por favor, tente mais tarde.", "Falhou acesso ao servidor." );
 			Log.i( "chamada", jexc.getMessage() );
 			}
 		catch( Exception exc )

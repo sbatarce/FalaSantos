@@ -75,9 +75,9 @@ public class ElsMensAdapter extends BaseExpandableListAdapter
 			view = infalInflater.inflate( R.layout.mens_grupo, null );
 			}
 		
-		((TextView)view.findViewById( R.id.txDaRecep )).setText( titulo );
 		List<clMensagem> lsmsg = lista.get( lstitulo.get( grpos ));
 		boolean flaler = false;
+		((TextView)view.findViewById( R.id.txDaRecep )).setText( titulo );
 		for( int i=0; i<lsmsg.size(); i++ )
 			{
 			if( lsmsg.get( i ).daleitu == null )
@@ -111,8 +111,10 @@ public class ElsMensAdapter extends BaseExpandableListAdapter
 			LayoutInflater inflater = (LayoutInflater) ctx.getSystemService( ctx.LAYOUT_INFLATER_SERVICE );
 			view = inflater.inflate( R.layout.mens_item, null );
 			}
-
-		((TextView)view.findViewById( R.id.txTitulo )).setText( clmens.titulo );
+		if( clmens.isConfidencial() )
+			((TextView)view.findViewById( R.id.txTitulo )).setText( "Confidencial" );
+		else
+			((TextView)view.findViewById( R.id.txTitulo )).setText( clmens.titulo );
 		((TextView)view.findViewById( R.id.txDaEnvio )).setText( clmens.danotif.substring( 11 ) );
 
 		String mens = "Recebimento:" + clmens.dareceb + " ";
