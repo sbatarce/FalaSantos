@@ -349,7 +349,7 @@ public class MensagensActivity extends AppCompatActivity implements RespostaConf
 				"  left join corpo cor on " +
 				"            cor.msg_id=msg.msg_id " +
 				" where      msg.rem_id=" + idreme +
-				" ORDER BY msg_dtreceb desc, cor.cor_id";
+				" ORDER BY msg_dtnotif desc, cor.cor_id";
 		String dtnot = "";
 		String dtrec = "";
 		String dtlei = "";
