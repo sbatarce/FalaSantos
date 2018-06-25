@@ -74,12 +74,11 @@ public class processFBMens implements RespostaConfig
 		String leitu = "";
 		String respo = "";
 		String delet = "";
-		
 		String sql = "select msg_id, msg_msaid, msg_dtuatua, msg_dtreceb, msg_dtleitu, msg_dtresp, msg_dtdelete " +
 			" from mensagens " +
-			" where msg_dtreceb > msg_dtuatua OR " +
-			"   msg_dtleitu > msg_dtuatua OR " +
-			"   msg_dtresp > msg_dtuatua OR " +
+			" where msg_dtreceb >= msg_dtuatua OR " +
+			"   msg_dtleitu >= msg_dtuatua OR " +
+			"   msg_dtresp >= msg_dtuatua OR " +
 			"   msg_dtdelete > msg_dtuatua";
 		
 		String lsmsg = "";
@@ -297,10 +296,6 @@ public class processFBMens implements RespostaConfig
 	//
 	public boolean mandaRespostas()
 		{
-		if( Globais.fldebug )
-			{
-			
-			}
 		if( Globais.db == null )
 			return false;
 		if( !Globais.isConnected() )
@@ -434,7 +429,6 @@ public class processFBMens implements RespostaConfig
 						//
 						long ixrem = Globais.ixRemet( sshd, idalv, remet );
 						//  insere a nova mensagem
-						//  afazer => precisa iniciar uma transação aqui?
 						Globais.db.beginTransaction();
 						cv = new ContentValues( 15 );
 						cv.put( "rem_id", ixrem );
